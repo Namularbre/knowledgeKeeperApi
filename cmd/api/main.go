@@ -2,11 +2,17 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"knowledgeKeeperApi/internal/config"
 	"knowledgeKeeperApi/internal/infra/db"
+	httpserver "knowledgeKeeperApi/internal/infra/http"
 )
 
 func main() {
@@ -37,5 +43,27 @@ func main() {
 	}
 
 	log.Println("DB connection OK")
-	// Étape suivante : démarrer serveur HTTP + injecter des repositories/use-cases.
+
+	server := httpserver.NewServer(cfg.Port)
+	server.RegisterRoutes()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		if err := server.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	<-stop
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Printf("server shutdown error: %v", err)
+	}
+
+	log.Println("Server stopped gracefully")
 }
