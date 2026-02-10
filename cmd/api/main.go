@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"knowledgeKeeperApi/internal/config"
-	"knowledgeKeeperApi/internal/infra/db"
-	httpserver "knowledgeKeeperApi/internal/infra/http"
+	"github.com/Namularbre/knowledgeKeeperApi/internal/config"
+	"github.com/Namularbre/knowledgeKeeperApi/internal/infra/db"
+
+	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
 )
 
 func main() {
