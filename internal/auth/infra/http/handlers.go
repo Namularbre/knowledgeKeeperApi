@@ -23,34 +23,55 @@ type RegisterHandler struct{ UC app.RegisterUser }
 type LoginHandler struct{ UC app.LoginUser }
 type RefreshHandler struct{ UC app.RefreshSession }
 
-type credentialsRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+// CredentialsRequest is the body for register/login.
+type CredentialsRequest struct {
+	Email    string `json:"email" example:"alice@example.com"`
+	Password string `json:"password" example:"hunter22"`
 }
 
-type refreshRequest struct {
-	RefreshToken string `json:"refresh_token"`
+// RefreshRequest is the body for token refresh.
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" example:"vS3...opaque..."`
 }
 
-type userResponse struct {
-	ID    int64  `json:"id"`
-	Email string `json:"email"`
+// UserResponse is the public view of a user.
+type UserResponse struct {
+	ID    int64  `json:"id" example:"1"`
+	Email string `json:"email" example:"alice@example.com"`
 }
 
-type tokenResponse struct {
+// TokenResponse is returned on successful login and refresh.
+type TokenResponse struct {
 	AccessToken      string `json:"access_token"`
 	RefreshToken     string `json:"refresh_token"`
-	TokenType        string `json:"token_type"`
-	ExpiresIn        int64  `json:"expires_in"`
-	RefreshExpiresIn int64  `json:"refresh_expires_in"`
+	TokenType        string `json:"token_type" example:"Bearer"`
+	ExpiresIn        int64  `json:"expires_in" example:"900"`
+	RefreshExpiresIn int64  `json:"refresh_expires_in" example:"604800"`
 }
 
+// ErrorResponse is the uniform error envelope returned by every handler.
+type ErrorResponse struct {
+	Error string `json:"error" example:"invalid_credentials"`
+}
+
+// Register godoc
+// @Summary      Register a new user
+// @Description  Creates a new user account. Email must be unique; password must be at least 8 characters.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      CredentialsRequest  true  "Credentials"
+// @Success      201   {object}  UserResponse
+// @Failure      400   {object}  ErrorResponse  "invalid_request | weak_password | invalid_email"
+// @Failure      409   {object}  ErrorResponse  "email_already_taken"
+// @Failure      500   {object}  ErrorResponse
+// @Router       /auth/register [post]
 func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
 		return
 	}
-	var req credentialsRequest
+	var req CredentialsRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
@@ -60,15 +81,27 @@ func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeDomainError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusCreated, userResponse{ID: user.ID, Email: user.Email})
+	writeJSON(w, http.StatusCreated, UserResponse{ID: user.ID, Email: user.Email})
 }
 
+// Login godoc
+// @Summary      Authenticate a user
+// @Description  Exchanges email/password for an access token (short-lived JWT) and an opaque refresh token.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      CredentialsRequest  true  "Credentials"
+// @Success      200   {object}  TokenResponse
+// @Failure      400   {object}  ErrorResponse  "invalid_request"
+// @Failure      401   {object}  ErrorResponse  "invalid_credentials"
+// @Failure      500   {object}  ErrorResponse
+// @Router       /auth/login [post]
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
 		return
 	}
-	var req credentialsRequest
+	var req CredentialsRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
@@ -81,12 +114,24 @@ func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, tokenPairToResponse(pair))
 }
 
+// Refresh godoc
+// @Summary      Rotate the session tokens
+// @Description  Consumes the provided refresh token (revoking it) and returns a fresh access+refresh pair.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      RefreshRequest  true  "Refresh token"
+// @Success      200   {object}  TokenResponse
+// @Failure      400   {object}  ErrorResponse  "invalid_request"
+// @Failure      401   {object}  ErrorResponse  "invalid_refresh_token"
+// @Failure      500   {object}  ErrorResponse
+// @Router       /auth/refresh [post]
 func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
 		return
 	}
-	var req refreshRequest
+	var req RefreshRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
@@ -99,9 +144,9 @@ func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, tokenPairToResponse(pair))
 }
 
-func tokenPairToResponse(p domain.TokenPair) tokenResponse {
+func tokenPairToResponse(p domain.TokenPair) TokenResponse {
 	now := time.Now().UTC()
-	return tokenResponse{
+	return TokenResponse{
 		AccessToken:      p.AccessToken,
 		RefreshToken:     p.RefreshToken,
 		TokenType:        "Bearer",
@@ -123,7 +168,7 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 }
 
 func writeError(w http.ResponseWriter, status int, code string) {
-	writeJSON(w, status, map[string]string{"error": code})
+	writeJSON(w, status, ErrorResponse{Error: code})
 }
 
 func writeDomainError(w http.ResponseWriter, err error) {

@@ -10,16 +10,25 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/Namularbre/knowledgeKeeperApi/docs"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
 	authinfra "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra"
 	authhttp "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra/http"
 	authsql "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra/sql"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/config"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/infra/db"
-
 	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
 )
 
+// @title           knowledgeKeeperApi
+// @version         1.0.0
+// @description     Personal knowledge keeper API. Auth (register/login/refresh), and metadata endpoints.
+// @BasePath        /
+//
+// @securityDefinitions.apikey BearerAuth
+// @in   header
+// @name Authorization
+// @description Type "Bearer {token}" where {token} is the access_token returned by /auth/login.
 func main() {
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
