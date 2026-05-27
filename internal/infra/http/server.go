@@ -15,6 +15,8 @@ type Server struct {
 	router     *http.ServeMux
 }
 
+type RouteRegistrar func(mux *http.ServeMux)
+
 func NewServer(port string) *Server {
 	mux := http.NewServeMux()
 
@@ -32,9 +34,12 @@ func NewServer(port string) *Server {
 	}
 }
 
-func (s *Server) RegisterRoutes() {
+func (s *Server) RegisterRoutes(extra ...RouteRegistrar) {
 	s.router.HandleFunc("/version", s.handleVersion)
 	s.router.HandleFunc("/health", s.handleHealth)
+	for _, reg := range extra {
+		reg(s.router)
+	}
 }
 
 func (s *Server) Start() error {

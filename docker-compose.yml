@@ -11,6 +11,7 @@ services:
       JWT_SECRET: "${JWT_SECRET}"
       JWT_ISSUER: "${JWT_ISSUER}"
       JWT_TTL: "${JWT_TTL}"
+      JWT_REFRESH_TTL: "${JWT_REFRESH_TTL}"
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
