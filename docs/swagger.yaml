@@ -1,0 +1,209 @@
+basePath: /
+definitions:
+  internal_auth_infra_http.CredentialsRequest:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      password:
+        example: hunter22
+        type: string
+    type: object
+  internal_auth_infra_http.ErrorResponse:
+    properties:
+      error:
+        example: invalid_credentials
+        type: string
+    type: object
+  internal_auth_infra_http.RefreshRequest:
+    properties:
+      refresh_token:
+        example: vS3...opaque...
+        type: string
+    type: object
+  internal_auth_infra_http.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        example: 900
+        type: integer
+      refresh_expires_in:
+        example: 604800
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        example: Bearer
+        type: string
+    type: object
+  internal_auth_infra_http.UserResponse:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+  internal_infra_http.HealthResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  internal_infra_http.VersionResponse:
+    properties:
+      api:
+        example: knowledgeKeeperApi
+        type: string
+      version:
+        example: 1.0.0
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Personal knowledge keeper API. Auth (register/login/refresh), and metadata
+    endpoints.
+  title: knowledgeKeeperApi
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges email/password for an access token (short-lived JWT)
+        and an opaque refresh token.
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth_infra_http.CredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.TokenResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "401":
+          description: invalid_credentials
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+      summary: Authenticate a user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Consumes the provided refresh token (revoking it) and returns a
+        fresh access+refresh pair.
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth_infra_http.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.TokenResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "401":
+          description: invalid_refresh_token
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+      summary: Rotate the session tokens
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account. Email must be unique; password must
+        be at least 8 characters.
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth_infra_http.CredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.UserResponse'
+        "400":
+          description: invalid_request | weak_password | invalid_email
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "409":
+          description: email_already_taken
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /health:
+    get:
+      description: Returns ok when the server is up. Does not check downstream dependencies.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_infra_http.HealthResponse'
+      summary: Liveness probe
+      tags:
+      - meta
+  /version:
+    get:
+      description: Returns the API name and the build-stamped semantic version.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_infra_http.VersionResponse'
+      summary: API version
+      tags:
+      - meta
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer {token}" where {token} is the access_token returned
+      by /auth/login.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

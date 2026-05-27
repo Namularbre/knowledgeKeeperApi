@@ -10,12 +10,25 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/Namularbre/knowledgeKeeperApi/docs"
+	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
+	authinfra "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra"
+	authhttp "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra/http"
+	authsql "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra/sql"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/config"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/infra/db"
-
 	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
 )
 
+// @title           knowledgeKeeperApi
+// @version         1.0.0
+// @description     Personal knowledge keeper API. Auth (register/login/refresh), and metadata endpoints.
+// @BasePath        /
+//
+// @securityDefinitions.apikey BearerAuth
+// @in   header
+// @name Authorization
+// @description Type "Bearer {token}" where {token} is the access_token returned by /auth/login.
 func main() {
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
@@ -36,17 +49,47 @@ func main() {
 		_ = maria.Close()
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	bootCtx, bootCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer bootCancel()
 
-	if err := maria.Ping(ctx); err != nil {
+	if err := maria.Ping(bootCtx); err != nil {
 		log.Fatalf("db ping error: %v", err)
 	}
-
 	log.Println("DB connection OK")
 
+	if err := maria.ApplySchema(bootCtx, authsql.Schema); err != nil {
+		log.Fatalf("schema apply error: %v", err)
+	}
+	log.Println("Auth schema applied")
+
+	users := authinfra.NewMySQLUserRepository(maria.DB())
+	refreshes := authinfra.NewMySQLRefreshTokenRepository(maria.DB())
+	hasher := authinfra.NewBcryptHasher(0)
+	issuer := authinfra.NewJWTIssuer(cfg.JWT.Secret, cfg.JWT.Issuer, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
+
+	handlers := authhttp.Handlers{
+		Register: authhttp.RegisterHandler{UC: app.RegisterUser{Users: users, Hasher: hasher}},
+		Login: authhttp.LoginHandler{UC: app.LoginUser{
+			Users:         users,
+			RefreshTokens: refreshes,
+			Hasher:        hasher,
+			Tokens:        issuer,
+			RefreshTTL:    cfg.JWT.RefreshTTL,
+		}},
+		Refresh: authhttp.RefreshHandler{UC: app.RefreshSession{
+			Users:         users,
+			RefreshTokens: refreshes,
+			Tokens:        issuer,
+			RefreshTTL:    cfg.JWT.RefreshTTL,
+		}},
+	}
+
 	server := httpserver.NewServer(cfg.Port)
-	server.RegisterRoutes()
+	server.RegisterRoutes(func(mux *http.ServeMux) {
+		mux.Handle("/auth/register", handlers.Register)
+		mux.Handle("/auth/login", handlers.Login)
+		mux.Handle("/auth/refresh", handlers.Refresh)
+	})
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
