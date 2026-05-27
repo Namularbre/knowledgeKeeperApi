@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/Namularbre/knowledgeKeeperApi/internal/version"
 )
 
 type Server struct {
@@ -53,7 +55,7 @@ func (s *Server) handleVersion(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"version":"1.0.0","api":"knowledgeKeeperApi"}`))
+	fmt.Fprintf(w, `{"version":%q,"api":%q}`, version.Version, version.APIName)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
