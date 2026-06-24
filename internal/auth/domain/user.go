@@ -15,6 +15,7 @@ type User struct {
 	ID           int64
 	Email        string
 	PasswordHash string
+	Roles        []Role
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -33,6 +34,14 @@ type RefreshToken struct {
 // IsActive reports whether the refresh token can still be used.
 func (t RefreshToken) IsActive(now time.Time) bool {
 	return t.RevokedAt == nil && now.Before(t.ExpiresAt)
+}
+
+// Role represents the role of a user
+type Role struct {
+	ID        int64
+	Label     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // Domain errors. Handlers map these to HTTP status codes; use cases return

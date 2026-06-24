@@ -2,7 +2,8 @@
 // binary stays self-contained (no external SQL files at runtime).
 package sql
 
-import _ "embed"
+import "embed"
 
 //go:embed 001_users.sql
-var Schema string
+//go:embed 002_users.sql
+var Schema embed.FS
