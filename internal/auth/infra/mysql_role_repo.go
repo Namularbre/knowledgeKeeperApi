@@ -74,7 +74,7 @@ func (r *MySqlRoleRepository) RemoveUserRole(ctx context.Context, roleID int64, 
 	return nil
 }
 
-func (r *MySqlRoleRepository) FetchByPage(ctx context.Context, page, perPage int) ([]domain.Role, error) {
+func (r *MySqlRoleRepository) FetchByPage(ctx context.Context, page, perPage uint64) ([]domain.Role, error) {
 	if page < 1 || perPage < 1 {
 		return []domain.Role{}, nil
 	}
