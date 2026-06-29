@@ -18,6 +18,8 @@ import (
 	"github.com/Namularbre/knowledgeKeeperApi/internal/config"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/infra/db"
 	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
+	rolesapp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/app"
+	rolesinfra "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra"
 )
 
 // @title           knowledgeKeeperApi
@@ -67,7 +69,7 @@ func main() {
 	hasher := authinfra.NewBcryptHasher(0)
 	issuer := authinfra.NewJWTIssuer(cfg.JWT.Secret, cfg.JWT.Issuer, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
 
-	roles := authinfra.NewMySqlRoleRepository(maria.DB())
+	roles := rolesinfra.NewMySQLRepository(maria.DB())
 
 	handlers := authhttp.Handlers{
 		Register: authhttp.RegisterHandler{UC: app.RegisterUser{Users: users, Hasher: hasher}},
@@ -84,7 +86,7 @@ func main() {
 			Tokens:        issuer,
 			RefreshTTL:    cfg.JWT.RefreshTTL,
 		}},
-		CreateRole: authhttp.CreateRoleHandler{UC: app.CreateRole{
+		CreateRole: authhttp.CreateRoleHandler{UC: rolesapp.CreateRole{
 			Roles: roles,
 		}},
 	}

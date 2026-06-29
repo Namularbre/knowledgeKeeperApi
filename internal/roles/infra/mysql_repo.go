@@ -6,17 +6,17 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
+	"github.com/Namularbre/knowledgeKeeperApi/internal/roles/domain"
 	"github.com/go-sql-driver/mysql"
 )
 
-type MySqlRoleRepository struct {
+type MySQLRepository struct {
 	db *sql.DB
 }
 
-func NewMySqlRoleRepository(db *sql.DB) *MySqlRoleRepository { return &MySqlRoleRepository{db: db} }
+func NewMySQLRepository(db *sql.DB) *MySQLRepository { return &MySQLRepository{db: db} }
 
-func (r *MySqlRoleRepository) Create(ctx context.Context, label string) (domain.Role, error) {
+func (r *MySQLRepository) Create(ctx context.Context, label string) (domain.Role, error) {
 	res, err := r.db.ExecContext(ctx,
 		`INSERT INTO roles (label) VALUES (?)`,
 		label,
@@ -25,19 +25,19 @@ func (r *MySqlRoleRepository) Create(ctx context.Context, label string) (domain.
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == mysqlDuplicateEntryErrno {
-			return domain.Role{}, errors.New("role already exists")
+			return domain.Role{}, domain.ErrRoleAlreadyExists
 		}
-		return domain.Role{}, fmt.Errorf("insert user %w", err)
+		return domain.Role{}, fmt.Errorf("insert role %w", err)
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
 		return domain.Role{}, fmt.Errorf("role last insert id %w", err)
 	}
 
-	return r.FindById(ctx, id)
+	return r.FindByID(ctx, id)
 }
 
-func (r *MySqlRoleRepository) AddUserRole(ctx context.Context, roleID int64, userID int64) error {
+func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID int64, userID int64) error {
 	res, err := r.db.ExecContext(ctx,
 		`INSERT INTO users_roles (role_id, user_id) VALUE (?, ?);`,
 		roleID, userID,
@@ -46,7 +46,7 @@ func (r *MySqlRoleRepository) AddUserRole(ctx context.Context, roleID int64, use
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == mysqlDuplicateEntryErrno {
-			return errors.New("role already exists")
+			return errors.New("user role already exists")
 		}
 		return fmt.Errorf("insert users_roles %w", err)
 	}
@@ -57,7 +57,7 @@ func (r *MySqlRoleRepository) AddUserRole(ctx context.Context, roleID int64, use
 	return nil
 }
 
-func (r *MySqlRoleRepository) RemoveUserRole(ctx context.Context, roleID int64, userID int64) error {
+func (r *MySQLRepository) RemoveUserRole(ctx context.Context, roleID int64, userID int64) error {
 	res, err := r.db.ExecContext(ctx,
 		`DELETE FROM users_roles WHERE role_id = ? AND user_id = ?;`,
 		roleID, userID,
@@ -74,7 +74,7 @@ func (r *MySqlRoleRepository) RemoveUserRole(ctx context.Context, roleID int64, 
 	return nil
 }
 
-func (r *MySqlRoleRepository) FetchByPage(ctx context.Context, page, perPage uint64) ([]domain.Role, error) {
+func (r *MySQLRepository) FetchByPage(ctx context.Context, page, perPage uint64) ([]domain.Role, error) {
 	if page < 1 || perPage < 1 {
 		return []domain.Role{}, nil
 	}
@@ -85,31 +85,31 @@ func (r *MySqlRoleRepository) FetchByPage(ctx context.Context, page, perPage uin
 	)
 }
 
-func (r *MySqlRoleRepository) FindById(ctx context.Context, id int64) (domain.Role, error) {
+func (r *MySQLRepository) FindByID(ctx context.Context, id int64) (domain.Role, error) {
 	return r.findOne(ctx,
 		`SELECT id, label, created_at, updated_at FROM roles WHERE id=?`,
 		id,
 	)
 }
 
-func (r *MySqlRoleRepository) SearchByLabel(ctx context.Context, label string) ([]domain.Role, error) {
+func (r *MySQLRepository) SearchByLabel(ctx context.Context, label string) ([]domain.Role, error) {
 	return r.findMany(ctx,
 		`SELECT id, label, created_at, updated_at FROM roles WHERE label LIKE ?`,
 		"%"+label+"%",
 	)
 }
 
-func (r *MySqlRoleRepository) FindByUserID(ctx context.Context, userID int64) (domain.Role, error) {
+func (r *MySQLRepository) FindByUserID(ctx context.Context, userID int64) (domain.Role, error) {
 	return r.findOne(ctx,
-		`SELECT roles.id, label, created_at, updated_at 
-				FROM roles 
+		`SELECT roles.id, label, created_at, updated_at
+				FROM roles
 				    INNER JOIN users_roles ON (roles.id = users_roles.role_id)
 				WHERE users_roles.user_id=?`,
 		userID,
 	)
 }
 
-func (r *MySqlRoleRepository) findOne(ctx context.Context, query string, args ...any) (domain.Role, error) {
+func (r *MySQLRepository) findOne(ctx context.Context, query string, args ...any) (domain.Role, error) {
 	var role domain.Role
 	err := r.db.QueryRowContext(ctx, query, args).
 		Scan(&role.ID, &role.Label, &role.CreatedAt, &role.UpdatedAt)
@@ -118,12 +118,12 @@ func (r *MySqlRoleRepository) findOne(ctx context.Context, query string, args ..
 		return domain.Role{}, domain.ErrRoleNotFound
 	}
 	if err != nil {
-		return domain.Role{}, fmt.Errorf("query user %w", err)
+		return domain.Role{}, fmt.Errorf("query role %w", err)
 	}
 	return role, nil
 }
 
-func (r *MySqlRoleRepository) findMany(ctx context.Context, query string, args ...any) ([]domain.Role, error) {
+func (r *MySQLRepository) findMany(ctx context.Context, query string, args ...any) ([]domain.Role, error) {
 	rows, err := r.db.QueryContext(ctx, query, args)
 	if err != nil {
 		return nil, fmt.Errorf("query roles %w", err)

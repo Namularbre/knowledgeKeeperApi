@@ -4,11 +4,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
+	"github.com/Namularbre/knowledgeKeeperApi/internal/roles/domain"
 )
 
 type CreateRole struct {
-	Roles domain.RoleRepository
+	Roles domain.Repository
 }
 
 type CreateRoleInput struct {

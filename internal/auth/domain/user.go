@@ -15,7 +15,6 @@ type User struct {
 	ID           int64
 	Email        string
 	PasswordHash string
-	Roles        []Role
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -36,14 +35,6 @@ func (t RefreshToken) IsActive(now time.Time) bool {
 	return t.RevokedAt == nil && now.Before(t.ExpiresAt)
 }
 
-// Role represents the role of a user
-type Role struct {
-	ID        int64
-	Label     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
 // Domain errors. Handlers map these to HTTP status codes; use cases return
 // them so callers can distinguish business-rule failures from infra errors.
 var (
@@ -53,8 +44,4 @@ var (
 	ErrInvalidRefresh     = errors.New("invalid or expired refresh token")
 	ErrWeakPassword       = errors.New("password does not meet minimum requirements")
 	ErrInvalidEmail       = errors.New("invalid email")
-	ErrRoleNotFound       = errors.New("role not found")
-	ErrRoleLabelNotFound  = errors.New("role label not found")
-	ErrRoleAlreadyExists  = errors.New("role already exists")
-	ErrInvalidRoleLabel   = errors.New("invalid role")
 )

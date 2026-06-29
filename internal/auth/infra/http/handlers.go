@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
-	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
+	authapp "github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
+	authdomain "github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
+	rolesapp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/app"
+	rolesdomain "github.com/Namularbre/knowledgeKeeperApi/internal/roles/domain"
 )
 
 type Handlers struct {
@@ -20,11 +22,11 @@ type Handlers struct {
 	CreateRole CreateRoleHandler
 }
 
-type RegisterHandler struct{ UC app.RegisterUser }
-type LoginHandler struct{ UC app.LoginUser }
-type RefreshHandler struct{ UC app.RefreshSession }
+type RegisterHandler struct{ UC authapp.RegisterUser }
+type LoginHandler struct{ UC authapp.LoginUser }
+type RefreshHandler struct{ UC authapp.RefreshSession }
 
-type CreateRoleHandler struct{ UC app.CreateRole }
+type CreateRoleHandler struct{ UC rolesapp.CreateRole }
 
 // CredentialsRequest is the body for register/login.
 type CredentialsRequest struct {
@@ -88,7 +90,7 @@ func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	user, err := h.UC.Execute(r.Context(), app.RegisterInput{Email: req.Email, Password: req.Password})
+	user, err := h.UC.Execute(r.Context(), authapp.RegisterInput{Email: req.Email, Password: req.Password})
 	if err != nil {
 		writeDomainError(w, err)
 		return
@@ -118,7 +120,7 @@ func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	pair, err := h.UC.Execute(r.Context(), app.LoginInput{Email: req.Email, Password: req.Password})
+	pair, err := h.UC.Execute(r.Context(), authapp.LoginInput{Email: req.Email, Password: req.Password})
 	if err != nil {
 		writeDomainError(w, err)
 		return
@@ -156,7 +158,7 @@ func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, tokenPairToResponse(pair))
 }
 
-func tokenPairToResponse(p domain.TokenPair) TokenResponse {
+func tokenPairToResponse(p authdomain.TokenPair) TokenResponse {
 	now := time.Now().UTC()
 	return TokenResponse{
 		AccessToken:      p.AccessToken,
@@ -185,19 +187,19 @@ func writeError(w http.ResponseWriter, status int, code string) {
 
 func writeDomainError(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, domain.ErrEmailAlreadyTaken):
+	case errors.Is(err, authdomain.ErrEmailAlreadyTaken):
 		writeError(w, http.StatusConflict, "email_already_taken")
-	case errors.Is(err, domain.ErrWeakPassword):
+	case errors.Is(err, authdomain.ErrWeakPassword):
 		writeError(w, http.StatusBadRequest, "weak_password")
-	case errors.Is(err, domain.ErrInvalidEmail):
+	case errors.Is(err, authdomain.ErrInvalidEmail):
 		writeError(w, http.StatusBadRequest, "invalid_email")
-	case errors.Is(err, domain.ErrInvalidCredentials):
+	case errors.Is(err, authdomain.ErrInvalidCredentials):
 		writeError(w, http.StatusUnauthorized, "invalid_credentials")
-	case errors.Is(err, domain.ErrInvalidRefresh):
+	case errors.Is(err, authdomain.ErrInvalidRefresh):
 		writeError(w, http.StatusUnauthorized, "invalid_refresh_token")
-	case errors.Is(err, domain.ErrRoleAlreadyExists):
+	case errors.Is(err, rolesdomain.ErrRoleAlreadyExists):
 		writeError(w, http.StatusConflict, "role_already_exists")
-	case errors.Is(err, domain.ErrInvalidRoleLabel):
+	case errors.Is(err, rolesdomain.ErrInvalidRoleLabel):
 		writeError(w, http.StatusBadRequest, "invalid_role_label")
 	default:
 		writeError(w, http.StatusInternalServerError, "internal_error")
@@ -226,7 +228,7 @@ func (h CreateRoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	role, err := h.UC.Execute(r.Context(), app.CreateRoleInput{Label: req.Label})
+	role, err := h.UC.Execute(r.Context(), rolesapp.CreateRoleInput{Label: req.Label})
 	if err != nil {
 		writeDomainError(w, err)
 		return
