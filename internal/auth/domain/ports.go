@@ -51,8 +51,9 @@ type TokenIssuer interface {
 
 type RoleRepository interface {
 	Create(ctx context.Context, label string) (Role, error)
+	FetchByPage(ctx context.Context, page, perPage int) ([]Role, error)
 	FindById(ctx context.Context, id int64) (Role, error)
-	FindByLabel(ctx context.Context, label string) (Role, error)
+	SearchByLabel(ctx context.Context, label string) ([]Role, error)
 	FindByUserID(ctx context.Context, userID int64) (Role, error)
 	AddUserRole(ctx context.Context, roleID int64, userID int64) error
 	RemoveUserRole(ctx context.Context, roleID int64, userID int64) error

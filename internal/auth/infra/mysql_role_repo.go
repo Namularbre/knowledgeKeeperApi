@@ -74,6 +74,17 @@ func (r *MySqlRoleRepository) RemoveUserRole(ctx context.Context, roleID int64, 
 	return nil
 }
 
+func (r *MySqlRoleRepository) FetchByPage(ctx context.Context, page, perPage int) ([]domain.Role, error) {
+	if page < 1 || perPage < 1 {
+		return []domain.Role{}, nil
+	}
+	offset := (page - 1) * perPage
+	return r.findMany(ctx,
+		`SELECT id, label, created_at, updated_at FROM roles ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		perPage, offset,
+	)
+}
+
 func (r *MySqlRoleRepository) FindById(ctx context.Context, id int64) (domain.Role, error) {
 	return r.findOne(ctx,
 		`SELECT id, label, created_at, updated_at FROM roles WHERE id=?`,
@@ -81,10 +92,10 @@ func (r *MySqlRoleRepository) FindById(ctx context.Context, id int64) (domain.Ro
 	)
 }
 
-func (r *MySqlRoleRepository) FindByLabel(ctx context.Context, label string) (domain.Role, error) {
-	return r.findOne(ctx,
-		`SELECT id, label, created_at, updated_at FROM roles WHERE label=?`,
-		label,
+func (r *MySqlRoleRepository) SearchByLabel(ctx context.Context, label string) ([]domain.Role, error) {
+	return r.findMany(ctx,
+		`SELECT id, label, created_at, updated_at FROM roles WHERE label LIKE ?`,
+		"%"+label+"%",
 	)
 }
 
@@ -98,7 +109,7 @@ func (r *MySqlRoleRepository) FindByUserID(ctx context.Context, userID int64) (d
 	)
 }
 
-func (r *MySqlRoleRepository) findOne(ctx context.Context, query string, args any) (domain.Role, error) {
+func (r *MySqlRoleRepository) findOne(ctx context.Context, query string, args ...any) (domain.Role, error) {
 	var role domain.Role
 	err := r.db.QueryRowContext(ctx, query, args).
 		Scan(&role.ID, &role.Label, &role.CreatedAt, &role.UpdatedAt)
@@ -110,4 +121,27 @@ func (r *MySqlRoleRepository) findOne(ctx context.Context, query string, args an
 		return domain.Role{}, fmt.Errorf("query user %w", err)
 	}
 	return role, nil
+}
+
+func (r *MySqlRoleRepository) findMany(ctx context.Context, query string, args ...any) ([]domain.Role, error) {
+	rows, err := r.db.QueryContext(ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("query roles %w", err)
+	}
+	defer rows.Close()
+
+	var roles []domain.Role
+	for rows.Next() {
+		var role domain.Role
+		if err := rows.Scan(&role.ID, &role.Label, &role.CreatedAt, &role.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("scan role %w", err)
+		}
+		roles = append(roles, role)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error %w", err)
+	}
+
+	return roles, nil
 }
