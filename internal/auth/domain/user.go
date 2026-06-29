@@ -53,4 +53,8 @@ var (
 	ErrInvalidRefresh     = errors.New("invalid or expired refresh token")
 	ErrWeakPassword       = errors.New("password does not meet minimum requirements")
 	ErrInvalidEmail       = errors.New("invalid email")
+	ErrRoleNotFound       = errors.New("role not found")
+	ErrRoleLabelNotFound  = errors.New("role label not found")
+	ErrRoleAlreadyExists  = errors.New("role already exists")
+	ErrInvalidRoleLabel   = errors.New("invalid role")
 )

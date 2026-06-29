@@ -13,6 +13,7 @@ import (
 	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
 )
 
+// TODO: move this to a file that is not related to a specific repository, as all repo can have a use for it
 const mysqlDuplicateEntryErrno = 1062
 
 type MySQLUserRepository struct {

@@ -67,6 +67,8 @@ func main() {
 	hasher := authinfra.NewBcryptHasher(0)
 	issuer := authinfra.NewJWTIssuer(cfg.JWT.Secret, cfg.JWT.Issuer, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
 
+	roles := authinfra.NewMySqlRoleRepository(maria.DB())
+
 	handlers := authhttp.Handlers{
 		Register: authhttp.RegisterHandler{UC: app.RegisterUser{Users: users, Hasher: hasher}},
 		Login: authhttp.LoginHandler{UC: app.LoginUser{
@@ -82,6 +84,9 @@ func main() {
 			Tokens:        issuer,
 			RefreshTTL:    cfg.JWT.RefreshTTL,
 		}},
+		CreateRole: authhttp.CreateRoleHandler{UC: app.CreateRole{
+			Roles: roles,
+		}},
 	}
 
 	server := httpserver.NewServer(cfg.Port)
@@ -89,6 +94,7 @@ func main() {
 		mux.Handle("/auth/register", handlers.Register)
 		mux.Handle("/auth/login", handlers.Login)
 		mux.Handle("/auth/refresh", handlers.Refresh)
+		mux.Handle("/auth/role/create", handlers.CreateRole)
 	})
 
 	stop := make(chan os.Signal, 1)
