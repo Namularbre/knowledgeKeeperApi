@@ -34,10 +34,10 @@ func (r *MySQLRepository) Create(ctx context.Context, label string) (domain.Role
 		return domain.Role{}, fmt.Errorf("role last insert id %w", err)
 	}
 
-	return r.FindByID(ctx, id)
+	return r.FindByID(ctx, uint64(id))
 }
 
-func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID int64, userID int64) error {
+func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID, userID uint64) error {
 	res, err := r.db.ExecContext(ctx,
 		`INSERT INTO users_roles (role_id, user_id) VALUE (?, ?);`,
 		roleID, userID,
@@ -57,7 +57,7 @@ func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID int64, userID 
 	return nil
 }
 
-func (r *MySQLRepository) RemoveUserRole(ctx context.Context, roleID int64, userID int64) error {
+func (r *MySQLRepository) RemoveUserRole(ctx context.Context, roleID, userID uint64) error {
 	res, err := r.db.ExecContext(ctx,
 		`DELETE FROM users_roles WHERE role_id = ? AND user_id = ?;`,
 		roleID, userID,
@@ -85,7 +85,7 @@ func (r *MySQLRepository) FetchByPage(ctx context.Context, page, perPage uint64)
 	)
 }
 
-func (r *MySQLRepository) FindByID(ctx context.Context, id int64) (domain.Role, error) {
+func (r *MySQLRepository) FindByID(ctx context.Context, id uint64) (domain.Role, error) {
 	return r.findOne(ctx,
 		`SELECT id, label, created_at, updated_at FROM roles WHERE id=?`,
 		id,
@@ -99,7 +99,7 @@ func (r *MySQLRepository) SearchByLabel(ctx context.Context, label string) ([]do
 	)
 }
 
-func (r *MySQLRepository) FindByUserID(ctx context.Context, userID int64) (domain.Role, error) {
+func (r *MySQLRepository) FindByUserID(ctx context.Context, userID uint64) (domain.Role, error) {
 	return r.findOne(ctx,
 		`SELECT roles.id, label, created_at, updated_at
 				FROM roles
@@ -111,7 +111,7 @@ func (r *MySQLRepository) FindByUserID(ctx context.Context, userID int64) (domai
 
 func (r *MySQLRepository) findOne(ctx context.Context, query string, args ...any) (domain.Role, error) {
 	var role domain.Role
-	err := r.db.QueryRowContext(ctx, query, args).
+	err := r.db.QueryRowContext(ctx, query, args...).
 		Scan(&role.ID, &role.Label, &role.CreatedAt, &role.UpdatedAt)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -124,7 +124,7 @@ func (r *MySQLRepository) findOne(ctx context.Context, query string, args ...any
 }
 
 func (r *MySQLRepository) findMany(ctx context.Context, query string, args ...any) ([]domain.Role, error) {
-	rows, err := r.db.QueryContext(ctx, query, args)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query roles %w", err)
 	}

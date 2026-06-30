@@ -99,6 +99,9 @@ func main() {
 		CreateRole: roleshttp.CreateRoleHandler{UC: rolesapp.CreateRole{
 			Roles: roles,
 		}},
+		FindByID: roleshttp.FindByIDHandler{UC: rolesapp.FindByID{
+			Roles: roles,
+		}},
 	}
 
 	server := httpserver.NewServer(cfg.Port)
@@ -106,7 +109,9 @@ func main() {
 		mux.Handle("/auth/register", authHandlers.Register)
 		mux.Handle("/auth/login", authHandlers.Login)
 		mux.Handle("/auth/refresh", authHandlers.Refresh)
+
 		mux.Handle("/roles/create", rolesHandlers.CreateRole)
+		mux.Handle("/roles/findbyid", rolesHandlers.FindByID)
 	})
 
 	stop := make(chan os.Signal, 1)
