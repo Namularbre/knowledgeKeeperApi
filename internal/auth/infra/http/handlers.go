@@ -11,22 +11,17 @@ import (
 
 	authapp "github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
 	authdomain "github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
-	rolesapp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/app"
-	rolesdomain "github.com/Namularbre/knowledgeKeeperApi/internal/roles/domain"
 )
 
 type Handlers struct {
-	Register   RegisterHandler
-	Login      LoginHandler
-	Refresh    RefreshHandler
-	CreateRole CreateRoleHandler
+	Register RegisterHandler
+	Login    LoginHandler
+	Refresh  RefreshHandler
 }
 
 type RegisterHandler struct{ UC authapp.RegisterUser }
 type LoginHandler struct{ UC authapp.LoginUser }
 type RefreshHandler struct{ UC authapp.RefreshSession }
-
-type CreateRoleHandler struct{ UC rolesapp.CreateRole }
 
 // CredentialsRequest is the body for register/login.
 type CredentialsRequest struct {
@@ -37,10 +32,6 @@ type CredentialsRequest struct {
 // RefreshRequest is the body for token refresh.
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token" example:"vS3...opaque..."`
-}
-
-type CreateRoleRequest struct {
-	Label string `json:"label" example:"Admin"`
 }
 
 // UserResponse is the public view of a user.
@@ -56,11 +47,6 @@ type TokenResponse struct {
 	TokenType        string `json:"token_type" example:"Bearer"`
 	ExpiresIn        int64  `json:"expires_in" example:"900"`
 	RefreshExpiresIn int64  `json:"refresh_expires_in" example:"604800"`
-}
-
-type CreateRoleResponse struct {
-	Id    int64  `json:"id" example:"1"`
-	Label string `json:"label" example:"Admin"`
 }
 
 // ErrorResponse is the uniform error envelope returned by every handler.
@@ -197,41 +183,7 @@ func writeDomainError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusUnauthorized, "invalid_credentials")
 	case errors.Is(err, authdomain.ErrInvalidRefresh):
 		writeError(w, http.StatusUnauthorized, "invalid_refresh_token")
-	case errors.Is(err, rolesdomain.ErrRoleAlreadyExists):
-		writeError(w, http.StatusConflict, "role_already_exists")
-	case errors.Is(err, rolesdomain.ErrInvalidRoleLabel):
-		writeError(w, http.StatusBadRequest, "invalid_role_label")
 	default:
 		writeError(w, http.StatusInternalServerError, "internal_error")
 	}
-}
-
-// CreateRole godoc
-// @Summary      Create a new role
-// @Description  Creates a new role with the provided label. Label is normalized to lowercase and trimmed.
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        body  body      CreateRoleRequest  true  "Role details"
-// @Success      200   {object}  CreateRoleResponse
-// @Failure      400   {object}  ErrorResponse  "invalid_request | invalid_role_label"
-// @Failure      409   {object}  ErrorResponse  "role_already_exists"
-// @Failure      500   {object}  ErrorResponse
-// @Router       /auth/role/create [post]
-func (h CreateRoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
-		return
-	}
-	var req CreateRoleRequest
-	if err := decodeJSON(r, &req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid_request")
-		return
-	}
-	role, err := h.UC.Execute(r.Context(), rolesapp.CreateRoleInput{Label: req.Label})
-	if err != nil {
-		writeDomainError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, CreateRoleResponse{Id: role.ID, Label: role.Label})
 }

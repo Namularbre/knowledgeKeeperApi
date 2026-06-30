@@ -20,6 +20,8 @@ import (
 	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
 	rolesapp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/app"
 	rolesinfra "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra"
+	roleshttp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra/http"
+	rolesql "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra/sql"
 )
 
 // @title           knowledgeKeeperApi
@@ -64,6 +66,11 @@ func main() {
 	}
 	log.Println("Auth schema applied")
 
+	if err := maria.ApplySchema(bootCtx, rolesql.Schema); err != nil {
+		log.Fatalf("schema apply error: %v", err)
+	}
+	log.Println("Roles schema applied")
+
 	users := authinfra.NewMySQLUserRepository(maria.DB())
 	refreshes := authinfra.NewMySQLRefreshTokenRepository(maria.DB())
 	hasher := authinfra.NewBcryptHasher(0)
@@ -71,7 +78,7 @@ func main() {
 
 	roles := rolesinfra.NewMySQLRepository(maria.DB())
 
-	handlers := authhttp.Handlers{
+	authHandlers := authhttp.Handlers{
 		Register: authhttp.RegisterHandler{UC: app.RegisterUser{Users: users, Hasher: hasher}},
 		Login: authhttp.LoginHandler{UC: app.LoginUser{
 			Users:         users,
@@ -86,17 +93,20 @@ func main() {
 			Tokens:        issuer,
 			RefreshTTL:    cfg.JWT.RefreshTTL,
 		}},
-		CreateRole: authhttp.CreateRoleHandler{UC: rolesapp.CreateRole{
+	}
+
+	rolesHandlers := roleshttp.Handlers{
+		CreateRole: roleshttp.CreateRoleHandler{UC: rolesapp.CreateRole{
 			Roles: roles,
 		}},
 	}
 
 	server := httpserver.NewServer(cfg.Port)
 	server.RegisterRoutes(func(mux *http.ServeMux) {
-		mux.Handle("/auth/register", handlers.Register)
-		mux.Handle("/auth/login", handlers.Login)
-		mux.Handle("/auth/refresh", handlers.Refresh)
-		mux.Handle("/auth/role/create", handlers.CreateRole)
+		mux.Handle("/auth/register", authHandlers.Register)
+		mux.Handle("/auth/login", authHandlers.Login)
+		mux.Handle("/auth/refresh", authHandlers.Refresh)
+		mux.Handle("/roles/create", rolesHandlers.CreateRole)
 	})
 
 	stop := make(chan os.Signal, 1)

@@ -5,5 +5,4 @@ package sql
 import "embed"
 
 //go:embed 001_users.sql
-//go:embed 002_users.sql
 var Schema embed.FS
