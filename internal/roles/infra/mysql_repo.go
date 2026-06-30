@@ -37,7 +37,7 @@ func (r *MySQLRepository) Create(ctx context.Context, label string) (domain.Role
 	return r.FindByID(ctx, uint64(id))
 }
 
-func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID, userID uint64) error {
+func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID, userID uint64) ([]domain.Role, error) {
 	res, err := r.db.ExecContext(ctx,
 		`INSERT INTO users_roles (role_id, user_id) VALUE (?, ?);`,
 		roleID, userID,
@@ -46,32 +46,32 @@ func (r *MySQLRepository) AddUserRole(ctx context.Context, roleID, userID uint64
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == mysqlDuplicateEntryErrno {
-			return errors.New("user role already exists")
+			return nil, errors.New("user role already exists")
 		}
-		return fmt.Errorf("insert users_roles %w", err)
+		return nil, fmt.Errorf("insert users_roles %w", err)
 	}
 	_, err = res.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("users_roles last insert id %w", err)
+		return nil, fmt.Errorf("users_roles last insert id %w", err)
 	}
-	return nil
+	return r.FindByUserID(ctx, userID)
 }
 
-func (r *MySQLRepository) RemoveUserRole(ctx context.Context, roleID, userID uint64) error {
+func (r *MySQLRepository) RemoveUserRole(ctx context.Context, roleID, userID uint64) ([]domain.Role, error) {
 	res, err := r.db.ExecContext(ctx,
 		`DELETE FROM users_roles WHERE role_id = ? AND user_id = ?;`,
 		roleID, userID,
 	)
 
 	if err != nil {
-		return fmt.Errorf("delete users_roles %w", err)
+		return nil, fmt.Errorf("delete users_roles %w", err)
 	}
 
 	_, err = res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("delete users_roles rows affected %w", err)
+		return nil, fmt.Errorf("delete users_roles rows affected %w", err)
 	}
-	return nil
+	return r.FindByUserID(ctx, userID)
 }
 
 func (r *MySQLRepository) FetchByPage(ctx context.Context, page, perPage uint64) ([]domain.Role, error) {
@@ -99,8 +99,8 @@ func (r *MySQLRepository) SearchByLabel(ctx context.Context, label string) ([]do
 	)
 }
 
-func (r *MySQLRepository) FindByUserID(ctx context.Context, userID uint64) (domain.Role, error) {
-	return r.findOne(ctx,
+func (r *MySQLRepository) FindByUserID(ctx context.Context, userID uint64) ([]domain.Role, error) {
+	return r.findMany(ctx,
 		`SELECT roles.id, label, created_at, updated_at
 				FROM roles
 				    INNER JOIN users_roles ON (roles.id = users_roles.role_id)

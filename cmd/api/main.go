@@ -102,6 +102,18 @@ func main() {
 		FindByID: roleshttp.FindByIDHandler{UC: rolesapp.FindByID{
 			Roles: roles,
 		}},
+		FindByUserID: roleshttp.FindByUserIDHandler{UC: rolesapp.FindByUserID{
+			Roles: roles,
+		}},
+		AddUserRole: roleshttp.AddUserRoleHandler{UC: rolesapp.AddUserRole{
+			Roles: roles,
+		}},
+		RemoveUserRole: roleshttp.RemoveUserRoleHandler{UC: rolesapp.RemoveUserRole{
+			Roles: roles,
+		}},
+		SearchByLabel: roleshttp.SearchByLabelHandler{UC: rolesapp.SearchByLabel{
+			Roles: roles,
+		}},
 	}
 
 	server := httpserver.NewServer(cfg.Port)
@@ -112,6 +124,10 @@ func main() {
 
 		mux.Handle("/roles/create", rolesHandlers.CreateRole)
 		mux.Handle("/roles/findbyid", rolesHandlers.FindByID)
+		mux.Handle("/roles/finduserroles", rolesHandlers.FindByUserID)
+		mux.Handle("/roles/adduserrole", rolesHandlers.AddUserRole)
+		mux.Handle("/roles/removeuserrole", rolesHandlers.RemoveUserRole)
+		mux.Handle("/roles/searchbylabel", rolesHandlers.SearchByLabel)
 	})
 
 	stop := make(chan os.Signal, 1)
