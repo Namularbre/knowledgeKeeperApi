@@ -23,10 +23,7 @@ type Handlers struct {
 type RegisterHandler struct{ UC authapp.RegisterUser }
 type LoginHandler struct{ UC authapp.LoginUser }
 type RefreshHandler struct{ UC authapp.RefreshSession }
-
-type MeHandler struct {
-	UC authapp.Me
-}
+type MeHandler struct{ UC authapp.Me }
 
 // CredentialsRequest is the body for register/login.
 type CredentialsRequest struct {
