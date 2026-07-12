@@ -61,7 +61,7 @@
             }
         },
         "/auth/me": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []

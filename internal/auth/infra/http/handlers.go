@@ -161,9 +161,9 @@ func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {object}  UserResponse
 // @Failure      401  {object}  ErrorResponse  "invalid_access_token"
 // @Failure      500  {object}  ErrorResponse
-// @Router       /auth/me [post]
+// @Router       /auth/me [get]
 func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
 		return
 	}

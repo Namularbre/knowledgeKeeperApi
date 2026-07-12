@@ -170,7 +170,7 @@ paths:
       tags:
       - auth
   /auth/me:
-    post:
+    get:
       consumes:
       - application/json
       description: Returns the profile (id + email) of the user identified by the

@@ -68,7 +68,7 @@ const docTemplate = `{
             }
         },
         "/auth/me": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
