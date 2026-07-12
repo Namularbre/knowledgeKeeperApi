@@ -121,17 +121,17 @@ func main() {
 
 	server := httpserver.NewServer(cfg.Port)
 	server.RegisterRoutes(func(mux *http.ServeMux) {
-		mux.Handle("/auth/register", authHandlers.Register)
-		mux.Handle("/auth/login", authHandlers.Login)
-		mux.Handle("/auth/refresh", authHandlers.Refresh)
-		mux.Handle("/auth/me", authhttp.RequireBearer(issuer, authHandlers.Me))
+		mux.Handle("/auth/register", httpserver.LogMiddleware(authHandlers.Register))
+		mux.Handle("/auth/login", httpserver.LogMiddleware(authHandlers.Login))
+		mux.Handle("/auth/refresh", httpserver.LogMiddleware(authHandlers.Refresh))
+		mux.Handle("/auth/me", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authHandlers.Me)))
 
-		mux.Handle("/roles/create", rolesHandlers.CreateRole)
-		mux.Handle("/roles/findbyid", rolesHandlers.FindByID)
-		mux.Handle("/roles/finduserroles", rolesHandlers.FindByUserID)
-		mux.Handle("/roles/adduserrole", rolesHandlers.AddUserRole)
-		mux.Handle("/roles/removeuserrole", rolesHandlers.RemoveUserRole)
-		mux.Handle("/roles/searchbylabel", rolesHandlers.SearchByLabel)
+		mux.Handle("/roles/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.CreateRole)))
+		mux.Handle("/roles/findbyid", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.FindByID)))
+		mux.Handle("/roles/finduserroles", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.FindByUserID)))
+		mux.Handle("/roles/adduserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.AddUserRole)))
+		mux.Handle("/roles/removeuserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.RemoveUserRole)))
+		mux.Handle("/roles/searchbylabel", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.SearchByLabel)))
 	})
 
 	stop := make(chan os.Signal, 1)
