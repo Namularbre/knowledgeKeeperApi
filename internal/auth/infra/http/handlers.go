@@ -173,7 +173,7 @@ func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := UserIDFrom(r.Context())
 	if !ok {
-		writeError(w, http.StatusBadRequest, "invalid_request")
+		writeError(w, http.StatusBadRequest, "no token found")
 		return
 	}
 	user, err := h.UC.Execute(r.Context(), userID)
