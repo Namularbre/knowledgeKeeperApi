@@ -1,5 +1,7 @@
 package infra
 
+//TODO: make the funct
+
 import (
 	"context"
 	"database/sql"

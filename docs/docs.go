@@ -191,6 +191,289 @@ const docTemplate = `{
                 }
             }
         },
+        "/roles/adduserrole": {
+            "post": {
+                "description": "Adds a role to a user and returns the user's updated list of roles.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Assign a role to a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Role ID",
+                        "name": "role_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.AddUserRoleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/create": {
+            "post": {
+                "description": "Creates a new role with the provided label. Label is normalized to lowercase and trimmed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Create a new role",
+                "parameters": [
+                    {
+                        "description": "Role details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.CreateRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.CreateRoleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_request | invalid_role_label",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "role_already_exists",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/findbyid": {
+            "get": {
+                "description": "Retrieves a single role by its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Get a role by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Role ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.FindByIdResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "role_not_found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/finduserroles": {
+            "get": {
+                "description": "Retrieves all roles assigned to a given user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Get the roles of a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.FindByUserIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/removeuserrole": {
+            "delete": {
+                "description": "Removes a role from a user and returns the user's updated list of roles.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Remove a role from a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Role ID",
+                        "name": "role_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.RemoveUserRoleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/searchbylabel": {
+            "get": {
+                "description": "Retrieves roles whose label contains the given substring.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Search roles by label",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Label search term",
+                        "name": "label",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.SearchByLabelResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/version": {
             "get": {
                 "description": "Returns the API name and the build-stamped semantic version.",
@@ -213,6 +496,24 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_auth_infra_http.CredentialsRequest": {
             "type": "object",
             "properties": {
@@ -299,6 +600,89 @@ const docTemplate = `{
                 "version": {
                     "type": "string",
                     "example": "1.0.0"
+                }
+            }
+        },
+        "internal_roles_infra_http.AddUserRoleResponse": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role"
+                    }
+                }
+            }
+        },
+        "internal_roles_infra_http.CreateRoleRequest": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string",
+                    "example": "Admin"
+                }
+            }
+        },
+        "internal_roles_infra_http.CreateRoleResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "label": {
+                    "type": "string",
+                    "example": "Admin"
+                }
+            }
+        },
+        "internal_roles_infra_http.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "invalid_credentials"
+                }
+            }
+        },
+        "internal_roles_infra_http.FindByIdResponse": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role"
+                }
+            }
+        },
+        "internal_roles_infra_http.FindByUserIDResponse": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role"
+                    }
+                }
+            }
+        },
+        "internal_roles_infra_http.RemoveUserRoleResponse": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role"
+                    }
+                }
+            }
+        },
+        "internal_roles_infra_http.SearchByLabelResponse": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role"
+                    }
                 }
             }
         }
