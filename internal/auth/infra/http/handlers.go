@@ -171,8 +171,11 @@ func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := UserIDFrom(r.Context())
-
+	userID, ok := UserIDFrom(r.Context())
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid_request")
+		return
+	}
 	user, err := h.UC.Execute(r.Context(), userID)
 	if err != nil {
 		writeDomainError(w, err)
