@@ -11,12 +11,9 @@ type Me struct {
 	Users domain.UserRepository
 }
 
-func (uc *Me) Execute(ctx context.Context) (domain.User, error) {
-	userId := ctx.Value("userId").(int64)
-
+func (uc *Me) Execute(ctx context.Context, userId int64) (domain.User, error) {
 	if userId < 0 {
 		return domain.User{}, errors.New("userId is negative")
 	}
-
 	return uc.Users.FindByID(ctx, userId)
 }

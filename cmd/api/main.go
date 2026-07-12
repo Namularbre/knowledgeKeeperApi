@@ -93,6 +93,9 @@ func main() {
 			Tokens:        issuer,
 			RefreshTTL:    cfg.JWT.RefreshTTL,
 		}},
+		Me: authhttp.MeHandler{UC: app.Me{
+			Users: users,
+		}},
 	}
 
 	rolesHandlers := roleshttp.Handlers{
@@ -121,6 +124,7 @@ func main() {
 		mux.Handle("/auth/register", authHandlers.Register)
 		mux.Handle("/auth/login", authHandlers.Login)
 		mux.Handle("/auth/refresh", authHandlers.Refresh)
+		mux.Handle("/auth/me", authHandlers.Me)
 
 		mux.Handle("/roles/create", rolesHandlers.CreateRole)
 		mux.Handle("/roles/findbyid", rolesHandlers.FindByID)

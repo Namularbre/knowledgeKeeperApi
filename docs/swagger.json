@@ -60,6 +60,46 @@
                 }
             }
         },
+        "/auth/me": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the profile (id + email) of the user identified by the bearer access token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get the authenticated user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth_infra_http.UserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid_access_token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth_infra_http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/refresh": {
             "post": {
                 "description": "Consumes the provided refresh token (revoking it) and returns a fresh access+refresh pair.",

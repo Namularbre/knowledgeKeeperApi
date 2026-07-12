@@ -169,6 +169,32 @@ paths:
       summary: Authenticate a user
       tags:
       - auth
+  /auth/me:
+    post:
+      consumes:
+      - application/json
+      description: Returns the profile (id + email) of the user identified by the
+        bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.UserResponse'
+        "401":
+          description: invalid_access_token
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the authenticated user
+      tags:
+      - auth
   /auth/refresh:
     post:
       consumes:

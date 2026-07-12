@@ -17,11 +17,16 @@ type Handlers struct {
 	Register RegisterHandler
 	Login    LoginHandler
 	Refresh  RefreshHandler
+	Me       MeHandler
 }
 
 type RegisterHandler struct{ UC authapp.RegisterUser }
 type LoginHandler struct{ UC authapp.LoginUser }
 type RefreshHandler struct{ UC authapp.RefreshSession }
+
+type MeHandler struct {
+	UC authapp.Me
+}
 
 // CredentialsRequest is the body for register/login.
 type CredentialsRequest struct {
@@ -36,6 +41,11 @@ type RefreshRequest struct {
 
 // UserResponse is the public view of a user.
 type UserResponse struct {
+	ID    int64  `json:"id" example:"1"`
+	Email string `json:"email" example:"alice@example.com"`
+}
+
+type MeResponse struct {
 	ID    int64  `json:"id" example:"1"`
 	Email string `json:"email" example:"alice@example.com"`
 }
@@ -142,6 +152,33 @@ func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, tokenPairToResponse(pair))
+}
+
+// Me godoc
+// @Summary      Get the authenticated user
+// @Description  Returns the profile (id + email) of the user identified by the bearer access token.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  UserResponse
+// @Failure      401  {object}  ErrorResponse  "invalid_access_token"
+// @Failure      500  {object}  ErrorResponse
+// @Router       /auth/me [post]
+func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
+		return
+	}
+
+	userID := UserIDFrom(r.Context())
+
+	user, err := h.UC.Execute(r.Context(), userID)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, MeResponse{ID: user.ID, Email: user.Email})
 }
 
 func tokenPairToResponse(p authdomain.TokenPair) TokenResponse {
