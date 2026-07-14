@@ -1,5 +1,17 @@
 basePath: /
 definitions:
+  github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role:
+    properties:
+      createdAt:
+        type: string
+      id:
+        format: int64
+        type: integer
+      label:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   internal_auth_infra_http.CredentialsRequest:
     properties:
       email:
@@ -61,6 +73,60 @@ definitions:
         example: 1.0.0
         type: string
     type: object
+  internal_roles_infra_http.AddUserRoleResponse:
+    properties:
+      roles:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role'
+        type: array
+    type: object
+  internal_roles_infra_http.CreateRoleRequest:
+    properties:
+      label:
+        example: Admin
+        type: string
+    type: object
+  internal_roles_infra_http.CreateRoleResponse:
+    properties:
+      id:
+        example: 1
+        type: integer
+      label:
+        example: Admin
+        type: string
+    type: object
+  internal_roles_infra_http.ErrorResponse:
+    properties:
+      error:
+        example: invalid_credentials
+        type: string
+    type: object
+  internal_roles_infra_http.FindByIdResponse:
+    properties:
+      role:
+        $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role'
+    type: object
+  internal_roles_infra_http.FindByUserIDResponse:
+    properties:
+      roles:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role'
+        type: array
+    type: object
+  internal_roles_infra_http.RemoveUserRoleResponse:
+    properties:
+      roles:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role'
+        type: array
+    type: object
+  internal_roles_infra_http.SearchByLabelResponse:
+    properties:
+      roles:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role'
+        type: array
+    type: object
 info:
   contact: {}
   description: Personal knowledge keeper API. Auth (register/login/refresh), and metadata
@@ -101,6 +167,32 @@ paths:
           schema:
             $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
       summary: Authenticate a user
+      tags:
+      - auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Returns the profile (id + email) of the user identified by the
+        bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.UserResponse'
+        "401":
+          description: invalid_access_token
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_auth_infra_http.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the authenticated user
       tags:
       - auth
   /auth/refresh:
@@ -186,6 +278,197 @@ paths:
       summary: Liveness probe
       tags:
       - meta
+  /roles/adduserrole:
+    post:
+      description: Adds a role to a user and returns the user's updated list of roles.
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Role ID
+        format: int64
+        in: query
+        name: role_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.AddUserRoleResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      summary: Assign a role to a user
+      tags:
+      - roles
+  /roles/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new role with the provided label. Label is normalized
+        to lowercase and trimmed.
+      parameters:
+      - description: Role details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_roles_infra_http.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.CreateRoleResponse'
+        "400":
+          description: invalid_request | invalid_role_label
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "409":
+          description: role_already_exists
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      summary: Create a new role
+      tags:
+      - roles
+  /roles/findbyid:
+    get:
+      description: Retrieves a single role by its ID.
+      parameters:
+      - description: Role ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.FindByIdResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "404":
+          description: role_not_found
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      summary: Get a role by ID
+      tags:
+      - roles
+  /roles/finduserroles:
+    get:
+      description: Retrieves all roles assigned to a given user.
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.FindByUserIDResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      summary: Get the roles of a user
+      tags:
+      - roles
+  /roles/removeuserrole:
+    delete:
+      description: Removes a role from a user and returns the user's updated list
+        of roles.
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Role ID
+        format: int64
+        in: query
+        name: role_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.RemoveUserRoleResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      summary: Remove a role from a user
+      tags:
+      - roles
+  /roles/searchbylabel:
+    get:
+      description: Retrieves roles whose label contains the given substring.
+      parameters:
+      - description: Label search term
+        in: query
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.SearchByLabelResponse'
+        "400":
+          description: invalid_request
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      summary: Search roles by label
+      tags:
+      - roles
   /version:
     get:
       description: Returns the API name and the build-stamped semantic version.

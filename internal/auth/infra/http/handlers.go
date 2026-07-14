@@ -9,19 +9,21 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
-	"github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
+	authapp "github.com/Namularbre/knowledgeKeeperApi/internal/auth/app"
+	authdomain "github.com/Namularbre/knowledgeKeeperApi/internal/auth/domain"
 )
 
 type Handlers struct {
 	Register RegisterHandler
 	Login    LoginHandler
 	Refresh  RefreshHandler
+	Me       MeHandler
 }
 
-type RegisterHandler struct{ UC app.RegisterUser }
-type LoginHandler struct{ UC app.LoginUser }
-type RefreshHandler struct{ UC app.RefreshSession }
+type RegisterHandler struct{ UC authapp.RegisterUser }
+type LoginHandler struct{ UC authapp.LoginUser }
+type RefreshHandler struct{ UC authapp.RefreshSession }
+type MeHandler struct{ UC authapp.Me }
 
 // CredentialsRequest is the body for register/login.
 type CredentialsRequest struct {
@@ -36,6 +38,11 @@ type RefreshRequest struct {
 
 // UserResponse is the public view of a user.
 type UserResponse struct {
+	ID    int64  `json:"id" example:"1"`
+	Email string `json:"email" example:"alice@example.com"`
+}
+
+type MeResponse struct {
 	ID    int64  `json:"id" example:"1"`
 	Email string `json:"email" example:"alice@example.com"`
 }
@@ -76,7 +83,7 @@ func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	user, err := h.UC.Execute(r.Context(), app.RegisterInput{Email: req.Email, Password: req.Password})
+	user, err := h.UC.Execute(r.Context(), authapp.RegisterInput{Email: req.Email, Password: req.Password})
 	if err != nil {
 		writeDomainError(w, err)
 		return
@@ -106,7 +113,7 @@ func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
-	pair, err := h.UC.Execute(r.Context(), app.LoginInput{Email: req.Email, Password: req.Password})
+	pair, err := h.UC.Execute(r.Context(), authapp.LoginInput{Email: req.Email, Password: req.Password})
 	if err != nil {
 		writeDomainError(w, err)
 		return
@@ -144,7 +151,37 @@ func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, tokenPairToResponse(pair))
 }
 
-func tokenPairToResponse(p domain.TokenPair) TokenResponse {
+// Me godoc
+// @Summary      Get the authenticated user
+// @Description  Returns the profile (id + email) of the user identified by the bearer access token.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  UserResponse
+// @Failure      401  {object}  ErrorResponse  "invalid_access_token"
+// @Failure      500  {object}  ErrorResponse
+// @Router       /auth/me [get]
+func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
+		return
+	}
+
+	userID, ok := UserIDFrom(r.Context())
+	if !ok {
+		writeError(w, http.StatusBadRequest, "no token found")
+		return
+	}
+	user, err := h.UC.Execute(r.Context(), userID)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, MeResponse{ID: user.ID, Email: user.Email})
+}
+
+func tokenPairToResponse(p authdomain.TokenPair) TokenResponse {
 	now := time.Now().UTC()
 	return TokenResponse{
 		AccessToken:      p.AccessToken,
@@ -173,15 +210,15 @@ func writeError(w http.ResponseWriter, status int, code string) {
 
 func writeDomainError(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, domain.ErrEmailAlreadyTaken):
+	case errors.Is(err, authdomain.ErrEmailAlreadyTaken):
 		writeError(w, http.StatusConflict, "email_already_taken")
-	case errors.Is(err, domain.ErrWeakPassword):
+	case errors.Is(err, authdomain.ErrWeakPassword):
 		writeError(w, http.StatusBadRequest, "weak_password")
-	case errors.Is(err, domain.ErrInvalidEmail):
+	case errors.Is(err, authdomain.ErrInvalidEmail):
 		writeError(w, http.StatusBadRequest, "invalid_email")
-	case errors.Is(err, domain.ErrInvalidCredentials):
+	case errors.Is(err, authdomain.ErrInvalidCredentials):
 		writeError(w, http.StatusUnauthorized, "invalid_credentials")
-	case errors.Is(err, domain.ErrInvalidRefresh):
+	case errors.Is(err, authdomain.ErrInvalidRefresh):
 		writeError(w, http.StatusUnauthorized, "invalid_refresh_token")
 	default:
 		writeError(w, http.StatusInternalServerError, "internal_error")

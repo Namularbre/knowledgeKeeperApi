@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
 	"strings"
 	"time"
@@ -55,14 +56,27 @@ func (m *MariaDB) DB() *sql.DB {
 //
 // The go-sql-driver/mysql connector does not support multi-statement queries
 // by default, hence the manual split.
-func (m *MariaDB) ApplySchema(ctx context.Context, script string) error {
-	for _, raw := range strings.Split(script, ";") {
-		stmt := strings.TrimSpace(raw)
-		if stmt == "" {
+func (m *MariaDB) ApplySchema(ctx context.Context, fs embed.FS) error {
+	entries, err := fs.ReadDir(".")
+	if err != nil {
+		return fmt.Errorf("read schema dir: %w", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-		if _, err := m.db.ExecContext(ctx, stmt); err != nil {
-			return fmt.Errorf("apply schema: %w (statement: %q)", err, truncate(stmt, 80))
+		script, err := fs.ReadFile(entry.Name())
+		if err != nil {
+			return fmt.Errorf("read schema file %s: %w", entry.Name(), err)
+		}
+		for _, raw := range strings.Split(string(script), ";") {
+			stmt := strings.TrimSpace(raw)
+			if stmt == "" {
+				continue
+			}
+			if _, err := m.db.ExecContext(ctx, stmt); err != nil {
+				return fmt.Errorf("apply schema %s: %w (statement: %q)", entry.Name(), err, truncate(stmt, 80))
+			}
 		}
 	}
 	return nil

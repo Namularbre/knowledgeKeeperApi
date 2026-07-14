@@ -18,6 +18,10 @@ import (
 	"github.com/Namularbre/knowledgeKeeperApi/internal/config"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/infra/db"
 	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
+	rolesapp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/app"
+	rolesinfra "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra"
+	roleshttp "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra/http"
+	rolesql "github.com/Namularbre/knowledgeKeeperApi/internal/roles/infra/sql"
 )
 
 // @title           knowledgeKeeperApi
@@ -62,12 +66,19 @@ func main() {
 	}
 	log.Println("Auth schema applied")
 
+	if err := maria.ApplySchema(bootCtx, rolesql.Schema); err != nil {
+		log.Fatalf("schema apply error: %v", err)
+	}
+	log.Println("Roles schema applied")
+
 	users := authinfra.NewMySQLUserRepository(maria.DB())
 	refreshes := authinfra.NewMySQLRefreshTokenRepository(maria.DB())
 	hasher := authinfra.NewBcryptHasher(0)
 	issuer := authinfra.NewJWTIssuer(cfg.JWT.Secret, cfg.JWT.Issuer, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
 
-	handlers := authhttp.Handlers{
+	roles := rolesinfra.NewMySQLRepository(maria.DB())
+
+	authHandlers := authhttp.Handlers{
 		Register: authhttp.RegisterHandler{UC: app.RegisterUser{Users: users, Hasher: hasher}},
 		Login: authhttp.LoginHandler{UC: app.LoginUser{
 			Users:         users,
@@ -82,13 +93,45 @@ func main() {
 			Tokens:        issuer,
 			RefreshTTL:    cfg.JWT.RefreshTTL,
 		}},
+		Me: authhttp.MeHandler{UC: app.Me{
+			Users: users,
+		}},
+	}
+
+	rolesHandlers := roleshttp.Handlers{
+		CreateRole: roleshttp.CreateRoleHandler{UC: rolesapp.CreateRole{
+			Roles: roles,
+		}},
+		FindByID: roleshttp.FindByIDHandler{UC: rolesapp.FindByID{
+			Roles: roles,
+		}},
+		FindByUserID: roleshttp.FindByUserIDHandler{UC: rolesapp.FindByUserID{
+			Roles: roles,
+		}},
+		AddUserRole: roleshttp.AddUserRoleHandler{UC: rolesapp.AddUserRole{
+			Roles: roles,
+		}},
+		RemoveUserRole: roleshttp.RemoveUserRoleHandler{UC: rolesapp.RemoveUserRole{
+			Roles: roles,
+		}},
+		SearchByLabel: roleshttp.SearchByLabelHandler{UC: rolesapp.SearchByLabel{
+			Roles: roles,
+		}},
 	}
 
 	server := httpserver.NewServer(cfg.Port)
 	server.RegisterRoutes(func(mux *http.ServeMux) {
-		mux.Handle("/auth/register", handlers.Register)
-		mux.Handle("/auth/login", handlers.Login)
-		mux.Handle("/auth/refresh", handlers.Refresh)
+		mux.Handle("/auth/register", httpserver.LogMiddleware(authHandlers.Register))
+		mux.Handle("/auth/login", httpserver.LogMiddleware(authHandlers.Login))
+		mux.Handle("/auth/refresh", httpserver.LogMiddleware(authHandlers.Refresh))
+		mux.Handle("/auth/me", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authHandlers.Me)))
+
+		mux.Handle("/roles/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.CreateRole)))
+		mux.Handle("/roles/findbyid", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.FindByID)))
+		mux.Handle("/roles/finduserroles", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.FindByUserID)))
+		mux.Handle("/roles/adduserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.AddUserRole)))
+		mux.Handle("/roles/removeuserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.RemoveUserRole)))
+		mux.Handle("/roles/searchbylabel", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.SearchByLabel)))
 	})
 
 	stop := make(chan os.Signal, 1)

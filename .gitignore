@@ -1,2 +1,8 @@
+
+# IDE and AI related
 .idea/
 /.junie/
+/.claude/
+
+# Project
+/docs/
