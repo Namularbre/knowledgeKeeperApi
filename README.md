@@ -136,6 +136,10 @@ This produces `docs/docs.go`, `docs/swagger.json`, `docs/swagger.yaml`.
 
 The Swagger UI is served by the binary itself at `/swagger/index.html` — no external files at runtime.
 
+GitHub Actions also regenerates the specification on every push and pull request,
+checks that the committed files are current, and publishes the JSON and YAML files
+as the `openapi-specification` workflow artifact.
+
 ### Where annotations live
 
 - General API metadata (title, version, security scheme): `cmd/api/main.go`
