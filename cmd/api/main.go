@@ -15,6 +15,10 @@ import (
 	authinfra "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra"
 	authhttp "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra/http"
 	authsql "github.com/Namularbre/knowledgeKeeperApi/internal/auth/infra/sql"
+	cohortapp "github.com/Namularbre/knowledgeKeeperApi/internal/cohort/app"
+	cohortinfra "github.com/Namularbre/knowledgeKeeperApi/internal/cohort/infra"
+	cohorthttp "github.com/Namularbre/knowledgeKeeperApi/internal/cohort/infra/http"
+	cohortsql "github.com/Namularbre/knowledgeKeeperApi/internal/cohort/infra/sql"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/config"
 	"github.com/Namularbre/knowledgeKeeperApi/internal/infra/db"
 	httpserver "github.com/Namularbre/knowledgeKeeperApi/internal/infra/http"
@@ -79,6 +83,10 @@ func main() {
 		log.Fatalf("schema apply error: %v", err)
 	}
 	log.Println("Subjects schema applied")
+	if err := maria.ApplySchema(bootCtx, cohortsql.Schema); err != nil {
+		log.Fatalf("schema apply error: %v", err)
+	}
+	log.Println("Cohorts schema applied")
 
 	users := authinfra.NewMySQLUserRepository(maria.DB())
 	refreshes := authinfra.NewMySQLRefreshTokenRepository(maria.DB())
@@ -87,6 +95,7 @@ func main() {
 
 	roles := rolesinfra.NewMySQLRepository(maria.DB())
 	subjects := subjectsinfra.NewMySQLRepository(maria.DB())
+	cohorts := cohortinfra.NewMySQLRepository(maria.DB())
 
 	authHandlers := authhttp.Handlers{
 		Register: authhttp.RegisterHandler{UC: app.RegisterUser{Users: users, Hasher: hasher}},
@@ -138,6 +147,15 @@ func main() {
 		SearchByName:      subjectshttp.SearchByNameHandler{UC: subjectsapp.SearchByName{Subjects: subjects}},
 	}
 
+	cohortHandlers := cohorthttp.Handlers{
+		CreateCohort:     cohorthttp.CreateCohortHandler{UC: cohortapp.CreateCohort{Cohorts: cohorts}},
+		FindByID:         cohorthttp.FindByIDHandler{UC: cohortapp.FindByID{Cohorts: cohorts}},
+		FindByUserID:     cohorthttp.FindByUserIDHandler{UC: cohortapp.FindByUserID{Cohorts: cohorts}},
+		AddUserCohort:    cohorthttp.AddUserCohortHandler{UC: cohortapp.AddUserCohort{Cohort: cohorts}},
+		RemoveUserCohort: cohorthttp.RemoveUserCohortHandler{UC: cohortapp.RemoveUserCohort{Cohorts: cohorts}},
+		SearchByName:     cohorthttp.SearchByNameHandler{UC: cohortapp.SearchByName{Cohorts: cohorts}},
+	}
+
 	server := httpserver.NewServer(cfg.Port)
 	server.RegisterRoutes(func(mux *http.ServeMux) {
 		mux.Handle("/auth/register", httpserver.LogMiddleware(authHandlers.Register))
@@ -158,6 +176,13 @@ func main() {
 		mux.Handle("/subjects/addusersubject", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, subjectsHandlers.AddUserSubject)))
 		mux.Handle("/subjects/removeusersubject", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, subjectsHandlers.RemoveUserSubject)))
 		mux.Handle("/subjects/searchbyname", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, subjectsHandlers.SearchByName)))
+
+		mux.Handle("/cohorts/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, cohortHandlers.CreateCohort)))
+		mux.Handle("/cohorts/findbyid", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, cohortHandlers.FindByID)))
+		mux.Handle("/cohorts/findusercohorts", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, cohortHandlers.FindByUserID)))
+		mux.Handle("/cohorts/addusercohort", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, cohortHandlers.AddUserCohort)))
+		mux.Handle("/cohorts/removeusercohort", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, cohortHandlers.RemoveUserCohort)))
+		mux.Handle("/cohorts/searchbyname", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, cohortHandlers.SearchByName)))
 	})
 
 	stop := make(chan os.Signal, 1)

@@ -211,6 +211,217 @@ const docTemplate = `{
                 }
             }
         },
+        "/cohorts/addusercohort": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cohorts"
+                ],
+                "summary": "Assign a cohort to a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Cohort ID",
+                        "name": "cohort_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CohortsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cohorts/create": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cohorts"
+                ],
+                "summary": "Create a cohort",
+                "parameters": [
+                    {
+                        "description": "Cohort details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CreateCohortRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CohortResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cohorts/findbyid": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cohorts"
+                ],
+                "summary": "Get a cohort by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Cohort ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CohortResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cohorts/findusercohorts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cohorts"
+                ],
+                "summary": "Get a user's cohorts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CohortsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cohorts/removeusercohort": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cohorts"
+                ],
+                "summary": "Remove a cohort from a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Cohort ID",
+                        "name": "cohort_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CohortsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cohorts/searchbyname": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cohorts"
+                ],
+                "summary": "Search cohorts by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name search term",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_cohort_infra_http.CohortsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns ok when the server is up. Does not check downstream dependencies.",
@@ -747,6 +958,30 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_Namularbre_knowledgeKeeperApi_internal_cohort_domain.Cohort": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role": {
             "type": "object",
             "properties": {
@@ -847,6 +1082,43 @@ const docTemplate = `{
                 "id": {
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "internal_cohort_infra_http.CohortResponse": {
+            "type": "object",
+            "properties": {
+                "cohort": {
+                    "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_cohort_domain.Cohort"
+                }
+            }
+        },
+        "internal_cohort_infra_http.CohortsResponse": {
+            "type": "object",
+            "properties": {
+                "cohorts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_cohort_domain.Cohort"
+                    }
+                }
+            }
+        },
+        "internal_cohort_infra_http.CreateCohortRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "First year"
+                }
+            }
+        },
+        "internal_cohort_infra_http.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "invalid_request"
                 }
             }
         },

@@ -1,5 +1,21 @@
 basePath: /
 definitions:
+  github_com_Namularbre_knowledgeKeeperApi_internal_cohort_domain.Cohort:
+    properties:
+      createdAt:
+        type: string
+      id:
+        format: int64
+        type: integer
+      name:
+        type: string
+      subjects:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject'
+        type: array
+      updatedAt:
+        type: string
+    type: object
   github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role:
     properties:
       createdAt:
@@ -69,6 +85,30 @@ definitions:
       id:
         example: 1
         type: integer
+    type: object
+  internal_cohort_infra_http.CohortResponse:
+    properties:
+      cohort:
+        $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_cohort_domain.Cohort'
+    type: object
+  internal_cohort_infra_http.CohortsResponse:
+    properties:
+      cohorts:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_cohort_domain.Cohort'
+        type: array
+    type: object
+  internal_cohort_infra_http.CreateCohortRequest:
+    properties:
+      name:
+        example: First year
+        type: string
+    type: object
+  internal_cohort_infra_http.ErrorResponse:
+    properties:
+      error:
+        example: invalid_request
+        type: string
     type: object
   internal_infra_http.HealthResponse:
     properties:
@@ -301,6 +341,145 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /cohorts/addusercohort:
+    post:
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Cohort ID
+        format: int64
+        in: query
+        name: cohort_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.CohortsResponse'
+      summary: Assign a cohort to a user
+      tags:
+      - cohorts
+  /cohorts/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Cohort details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_cohort_infra_http.CreateCohortRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.CohortResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.ErrorResponse'
+      summary: Create a cohort
+      tags:
+      - cohorts
+  /cohorts/findbyid:
+    get:
+      parameters:
+      - description: Cohort ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.CohortResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.ErrorResponse'
+      summary: Get a cohort by ID
+      tags:
+      - cohorts
+  /cohorts/findusercohorts:
+    get:
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.CohortsResponse'
+      summary: Get a user's cohorts
+      tags:
+      - cohorts
+  /cohorts/removeusercohort:
+    delete:
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Cohort ID
+        format: int64
+        in: query
+        name: cohort_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.CohortsResponse'
+      summary: Remove a cohort from a user
+      tags:
+      - cohorts
+  /cohorts/searchbyname:
+    get:
+      parameters:
+      - description: Name search term
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_cohort_infra_http.CohortsResponse'
+      summary: Search cohorts by name
+      tags:
+      - cohorts
   /health:
     get:
       description: Returns ok when the server is up. Does not check downstream dependencies.
