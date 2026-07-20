@@ -514,6 +514,217 @@ const docTemplate = `{
                 }
             }
         },
+        "/subjects/addusersubject": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subjects"
+                ],
+                "summary": "Assign a subject to a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Subject ID",
+                        "name": "subject_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.SubjectsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/subjects/create": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subjects"
+                ],
+                "summary": "Create a subject",
+                "parameters": [
+                    {
+                        "description": "Subject details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.CreateSubjectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.SubjectResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/subjects/findbyid": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subjects"
+                ],
+                "summary": "Get a subject by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Subject ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.SubjectResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/subjects/findusersubjects": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subjects"
+                ],
+                "summary": "Get a user's subjects",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.SubjectsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/subjects/removeusersubject": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subjects"
+                ],
+                "summary": "Remove a subject from a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Subject ID",
+                        "name": "subject_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.SubjectsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/subjects/searchbyname": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subjects"
+                ],
+                "summary": "Search subjects by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name search term",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_subjects_infra_http.SubjectsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/version": {
             "get": {
                 "description": "Returns the API name and the build-stamped semantic version.",
@@ -547,6 +758,24 @@ const docTemplate = `{
                     "format": "int64"
                 },
                 "label": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -722,6 +951,43 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role"
+                    }
+                }
+            }
+        },
+        "internal_subjects_infra_http.CreateSubjectRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Mathematics"
+                }
+            }
+        },
+        "internal_subjects_infra_http.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "invalid_request"
+                }
+            }
+        },
+        "internal_subjects_infra_http.SubjectResponse": {
+            "type": "object",
+            "properties": {
+                "subject": {
+                    "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject"
+                }
+            }
+        },
+        "internal_subjects_infra_http.SubjectsResponse": {
+            "type": "object",
+            "properties": {
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject"
                     }
                 }
             }

@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS subjects (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS users_subjects (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    subject_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_users_subjects (user_id, subject_id),
+    CONSTRAINT fk_users_subjects_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_users_subjects_subject FOREIGN KEY (subject_id) REFERENCES subjects(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

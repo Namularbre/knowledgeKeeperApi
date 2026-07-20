@@ -12,6 +12,18 @@ definitions:
       updatedAt:
         type: string
     type: object
+  github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject:
+    properties:
+      createdAt:
+        type: string
+      id:
+        format: int64
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   internal_auth_infra_http.CredentialsRequest:
     properties:
       email:
@@ -125,6 +137,30 @@ definitions:
       roles:
         items:
           $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.Role'
+        type: array
+    type: object
+  internal_subjects_infra_http.CreateSubjectRequest:
+    properties:
+      name:
+        example: Mathematics
+        type: string
+    type: object
+  internal_subjects_infra_http.ErrorResponse:
+    properties:
+      error:
+        example: invalid_request
+        type: string
+    type: object
+  internal_subjects_infra_http.SubjectResponse:
+    properties:
+      subject:
+        $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject'
+    type: object
+  internal_subjects_infra_http.SubjectsResponse:
+    properties:
+      subjects:
+        items:
+          $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject'
         type: array
     type: object
 info:
@@ -469,6 +505,145 @@ paths:
       summary: Search roles by label
       tags:
       - roles
+  /subjects/addusersubject:
+    post:
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Subject ID
+        format: int64
+        in: query
+        name: subject_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.SubjectsResponse'
+      summary: Assign a subject to a user
+      tags:
+      - subjects
+  /subjects/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subject details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_subjects_infra_http.CreateSubjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.SubjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.ErrorResponse'
+      summary: Create a subject
+      tags:
+      - subjects
+  /subjects/findbyid:
+    get:
+      parameters:
+      - description: Subject ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.SubjectResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.ErrorResponse'
+      summary: Get a subject by ID
+      tags:
+      - subjects
+  /subjects/findusersubjects:
+    get:
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.SubjectsResponse'
+      summary: Get a user's subjects
+      tags:
+      - subjects
+  /subjects/removeusersubject:
+    delete:
+      parameters:
+      - description: User ID
+        format: int64
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Subject ID
+        format: int64
+        in: query
+        name: subject_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.SubjectsResponse'
+      summary: Remove a subject from a user
+      tags:
+      - subjects
+  /subjects/searchbyname:
+    get:
+      parameters:
+      - description: Name search term
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_subjects_infra_http.SubjectsResponse'
+      summary: Search subjects by name
+      tags:
+      - subjects
   /version:
     get:
       description: Returns the API name and the build-stamped semantic version.
