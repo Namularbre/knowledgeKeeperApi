@@ -23,6 +23,9 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Download Go modules
+        run: go mod download
+
       - name: Install Swag
         run: go install github.com/swaggo/swag/cmd/swag@v1.16.3
 
