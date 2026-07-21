@@ -10,12 +10,12 @@ Personal knowledge-keeper REST API written in Go. Auth (register / login / refre
 |---|---|---|
 | Go | 1.25.3 | Build the API |
 | Docker + Compose | recent | Run MariaDB (and optionally the API) locally |
-| swag CLI | v1.16+ | Regenerate the OpenAPI spec from annotations (only needed when annotations change) |
+| swag CLI | v1.16.3 | Regenerate the OpenAPI spec from annotations (only needed when annotations change) |
 
 Install `swag` once:
 
 ```sh
-go install github.com/swaggo/swag/cmd/swag@latest
+go install github.com/swaggo/swag/cmd/swag@v1.16.3
 ```
 
 Make sure `$(go env GOPATH)/bin` is on your `PATH` (typically `~/go/bin`):
