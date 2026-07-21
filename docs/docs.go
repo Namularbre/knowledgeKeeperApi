@@ -455,7 +455,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "User ID",
                         "name": "user_id",
                         "in": "query",
@@ -463,7 +462,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Role ID",
                         "name": "role_id",
                         "in": "query",
@@ -557,7 +555,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Role ID",
                         "name": "id",
                         "in": "query",
@@ -605,7 +602,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "User ID",
                         "name": "id",
                         "in": "query",
@@ -647,7 +643,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "User ID",
                         "name": "user_id",
                         "in": "query",
@@ -655,7 +650,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Role ID",
                         "name": "role_id",
                         "in": "query",
@@ -989,8 +983,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer",
-                    "format": "int64"
+                    "type": "integer"
                 },
                 "label": {
                     "type": "string"

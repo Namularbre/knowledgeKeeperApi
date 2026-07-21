@@ -21,7 +21,6 @@ definitions:
       createdAt:
         type: string
       id:
-        format: int64
         type: integer
       label:
         type: string
@@ -498,13 +497,11 @@ paths:
       description: Adds a role to a user and returns the user's updated list of roles.
       parameters:
       - description: User ID
-        format: int64
         in: query
         name: user_id
         required: true
         type: integer
       - description: Role ID
-        format: int64
         in: query
         name: role_id
         required: true
@@ -567,7 +564,6 @@ paths:
       description: Retrieves a single role by its ID.
       parameters:
       - description: Role ID
-        format: int64
         in: query
         name: id
         required: true
@@ -599,7 +595,6 @@ paths:
       description: Retrieves all roles assigned to a given user.
       parameters:
       - description: User ID
-        format: int64
         in: query
         name: id
         required: true
@@ -628,13 +623,11 @@ paths:
         of roles.
       parameters:
       - description: User ID
-        format: int64
         in: query
         name: user_id
         required: true
         type: integer
       - description: Role ID
-        format: int64
         in: query
         name: role_id
         required: true

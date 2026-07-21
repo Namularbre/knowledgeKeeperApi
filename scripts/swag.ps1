@@ -1,14 +1,14 @@
 # Regenerate the OpenAPI spec under ./docs/ from annotations in the source tree.
 #
 # Requires `swag` (https://github.com/swaggo/swag) on PATH:
-#   go install github.com/swaggo/swag/cmd/swag@latest
+#   go install github.com/swaggo/swag/cmd/swag@v1.16.3
 
 $ErrorActionPreference = 'Stop'
 
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
 if (-not (Get-Command swag -ErrorAction SilentlyContinue)) {
-  Write-Error "swag not found. Install with: go install github.com/swaggo/swag/cmd/swag@latest" -ErrorAction Stop
+  Write-Error "swag not found. Install with: go install github.com/swaggo/swag/cmd/swag@v1.16.3" -ErrorAction Stop
   exit 1
 }
 
