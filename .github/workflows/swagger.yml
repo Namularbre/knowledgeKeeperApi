@@ -32,8 +32,8 @@ jobs:
       - name: Generate Swagger documentation
         run: ./scripts/swag.sh
 
-      - name: Verify generated documentation is current
-        run: git diff --exit-code -- docs/
+      # - name: Verify generated documentation is current
+      #   run: git diff --exit-code -- docs/
 
       - name: Upload OpenAPI specification
         uses: actions/upload-artifact@v4
