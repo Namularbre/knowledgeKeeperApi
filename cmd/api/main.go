@@ -163,11 +163,11 @@ func main() {
 		mux.Handle("/auth/refresh", httpserver.LogMiddleware(authHandlers.Refresh))
 		mux.Handle("/auth/me", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authHandlers.Me)))
 
-		mux.Handle("/roles/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.CreateRole)))
+		mux.Handle("/roles/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authhttp.RequireAnyRole(roles, "admin")(rolesHandlers.CreateRole))))
 		mux.Handle("/roles/findbyid", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.FindByID)))
 		mux.Handle("/roles/finduserroles", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.FindByUserID)))
-		mux.Handle("/roles/adduserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.AddUserRole)))
-		mux.Handle("/roles/removeuserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.RemoveUserRole)))
+		mux.Handle("/roles/adduserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authhttp.RequireAnyRole(roles, "admin")(rolesHandlers.AddUserRole))))
+		mux.Handle("/roles/removeuserrole", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authhttp.RequireAnyRole(roles, "admin")(rolesHandlers.RemoveUserRole))))
 		mux.Handle("/roles/searchbylabel", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, rolesHandlers.SearchByLabel)))
 
 		mux.Handle("/subjects/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, subjectsHandlers.CreateSubject)))

@@ -98,8 +98,11 @@ type ErrorResponse struct {
 // @Tags         roles
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        body  body      CreateRoleRequest  true  "Role details"
 // @Success      200   {object}  CreateRoleResponse
+// @Failure      401   {object}  ErrorResponse  "missing_bearer_token | invalid_access_token"
+// @Failure      403   {object}  ErrorResponse  "insufficient_role"
 // @Failure      400   {object}  ErrorResponse  "invalid_request | invalid_role_label"
 // @Failure      409   {object}  ErrorResponse  "role_already_exists"
 // @Failure      500   {object}  ErrorResponse
@@ -194,9 +197,12 @@ func (h FindByUserIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // @Description  Adds a role to a user and returns the user's updated list of roles.
 // @Tags         roles
 // @Produce      json
+// @Security     BearerAuth
 // @Param        user_id  query      uint64  true  "User ID"
 // @Param        role_id  query      uint64  true  "Role ID"
 // @Success      200   {object}  AddUserRoleResponse
+// @Failure      401   {object}  ErrorResponse  "missing_bearer_token | invalid_access_token"
+// @Failure      403   {object}  ErrorResponse  "insufficient_role"
 // @Failure      400   {object}  ErrorResponse  "invalid_request"
 // @Failure      500   {object}  ErrorResponse
 // @Router       /roles/adduserrole [post]
@@ -233,9 +239,12 @@ func (h AddUserRoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // @Description  Removes a role from a user and returns the user's updated list of roles.
 // @Tags         roles
 // @Produce      json
+// @Security     BearerAuth
 // @Param        user_id  query      uint64  true  "User ID"
 // @Param        role_id  query      uint64  true  "Role ID"
 // @Success      200   {object}  RemoveUserRoleResponse
+// @Failure      401   {object}  ErrorResponse  "missing_bearer_token | invalid_access_token"
+// @Failure      403   {object}  ErrorResponse  "insufficient_role"
 // @Failure      400   {object}  ErrorResponse  "invalid_request"
 // @Failure      500   {object}  ErrorResponse
 // @Router       /roles/removeuserrole [delete]

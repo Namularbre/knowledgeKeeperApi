@@ -444,6 +444,11 @@ const docTemplate = `{
         },
         "/roles/adduserrole": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Adds a role to a user and returns the user's updated list of roles.",
                 "produces": [
                     "application/json"
@@ -455,6 +460,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User ID",
                         "name": "user_id",
                         "in": "query",
@@ -462,6 +468,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Role ID",
                         "name": "role_id",
                         "in": "query",
@@ -481,6 +488,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "missing_bearer_token | invalid_access_token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "insufficient_role",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -492,6 +511,11 @@ const docTemplate = `{
         },
         "/roles/create": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new role with the provided label. Label is normalized to lowercase and trimmed.",
                 "consumes": [
                     "application/json"
@@ -527,6 +551,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "missing_bearer_token | invalid_access_token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "insufficient_role",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
                     "409": {
                         "description": "role_already_exists",
                         "schema": {
@@ -555,6 +591,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Role ID",
                         "name": "id",
                         "in": "query",
@@ -602,6 +639,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User ID",
                         "name": "id",
                         "in": "query",
@@ -632,6 +670,11 @@ const docTemplate = `{
         },
         "/roles/removeuserrole": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Removes a role from a user and returns the user's updated list of roles.",
                 "produces": [
                     "application/json"
@@ -643,6 +686,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User ID",
                         "name": "user_id",
                         "in": "query",
@@ -650,6 +694,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Role ID",
                         "name": "role_id",
                         "in": "query",
@@ -665,6 +710,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "invalid_request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "missing_bearer_token | invalid_access_token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "insufficient_role",
                         "schema": {
                             "$ref": "#/definitions/internal_roles_infra_http.ErrorResponse"
                         }
@@ -983,7 +1040,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "label": {
                     "type": "string"
