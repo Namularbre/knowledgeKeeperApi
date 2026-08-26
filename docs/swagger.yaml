@@ -21,6 +21,7 @@ definitions:
       createdAt:
         type: string
       id:
+        format: int64
         type: integer
       label:
         type: string
@@ -497,11 +498,13 @@ paths:
       description: Adds a role to a user and returns the user's updated list of roles.
       parameters:
       - description: User ID
+        format: int64
         in: query
         name: user_id
         required: true
         type: integer
       - description: Role ID
+        format: int64
         in: query
         name: role_id
         required: true
@@ -517,10 +520,20 @@ paths:
           description: invalid_request
           schema:
             $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "401":
+          description: missing_bearer_token | invalid_access_token
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "403":
+          description: insufficient_role
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Assign a role to a user
       tags:
       - roles
@@ -548,6 +561,14 @@ paths:
           description: invalid_request | invalid_role_label
           schema:
             $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "401":
+          description: missing_bearer_token | invalid_access_token
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "403":
+          description: insufficient_role
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
         "409":
           description: role_already_exists
           schema:
@@ -556,6 +577,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new role
       tags:
       - roles
@@ -564,6 +587,7 @@ paths:
       description: Retrieves a single role by its ID.
       parameters:
       - description: Role ID
+        format: int64
         in: query
         name: id
         required: true
@@ -595,6 +619,7 @@ paths:
       description: Retrieves all roles assigned to a given user.
       parameters:
       - description: User ID
+        format: int64
         in: query
         name: id
         required: true
@@ -623,11 +648,13 @@ paths:
         of roles.
       parameters:
       - description: User ID
+        format: int64
         in: query
         name: user_id
         required: true
         type: integer
       - description: Role ID
+        format: int64
         in: query
         name: role_id
         required: true
@@ -643,10 +670,20 @@ paths:
           description: invalid_request
           schema:
             $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "401":
+          description: missing_bearer_token | invalid_access_token
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+        "403":
+          description: insufficient_role
+          schema:
+            $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/internal_roles_infra_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Remove a role from a user
       tags:
       - roles
