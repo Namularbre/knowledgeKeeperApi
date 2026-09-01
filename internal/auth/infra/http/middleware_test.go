@@ -23,8 +23,8 @@ func TestRequireAnyRole(t *testing.T) {
 	}{
 		{name: "missing authenticated user", wantStatus: http.StatusUnauthorized},
 		{name: "role lookup failure", userID: int64Ptr(1), err: errors.New("database unavailable"), wantStatus: http.StatusInternalServerError},
-		{name: "role is not allowed", userID: int64Ptr(1), roles: []rolesdomain.Role{{Label: "member"}}, wantStatus: http.StatusForbidden},
-		{name: "allowed role", userID: int64Ptr(1), roles: []rolesdomain.Role{{Label: "admin"}}, wantStatus: http.StatusNoContent, wantCalled: true},
+		{name: "prof role is not allowed", userID: int64Ptr(1), roles: []rolesdomain.Role{{Label: rolesdomain.RoleProf}}, wantStatus: http.StatusForbidden},
+		{name: "allowed role", userID: int64Ptr(1), roles: []rolesdomain.Role{{Label: rolesdomain.RoleAdmin}}, wantStatus: http.StatusNoContent, wantCalled: true},
 		{name: "role comparison is normalized", userID: int64Ptr(1), roles: []rolesdomain.Role{{Label: " Admin "}}, wantStatus: http.StatusNoContent, wantCalled: true},
 	}
 
@@ -37,7 +37,7 @@ func TestRequireAnyRole(t *testing.T) {
 				called = true
 				w.WriteHeader(http.StatusNoContent)
 			})
-			handler := RequireAnyRole(fakeRoleRepository{roles: tt.roles, err: tt.err}, "admin")(next)
+			handler := RequireAnyRole(fakeRoleRepository{roles: tt.roles, err: tt.err}, rolesdomain.RoleAdmin)(next)
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			if tt.userID != nil {
 				req = req.WithContext(context.WithValue(req.Context(), userIDKey, *tt.userID))
@@ -63,7 +63,7 @@ type fakeRoleRepository struct {
 	err   error
 }
 
-func (f fakeRoleRepository) Create(context.Context, string) (rolesdomain.Role, error) {
+func (f fakeRoleRepository) Create(context.Context, rolesdomain.RoleLabel) (rolesdomain.Role, error) {
 	return rolesdomain.Role{}, nil
 }
 

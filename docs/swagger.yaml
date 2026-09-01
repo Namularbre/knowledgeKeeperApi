@@ -24,10 +24,18 @@ definitions:
         format: int64
         type: integer
       label:
-        type: string
+        $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.RoleLabel'
       updatedAt:
         type: string
     type: object
+  github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.RoleLabel:
+    enum:
+    - prof
+    - admin
+    type: string
+    x-enum-varnames:
+    - RoleProf
+    - RoleAdmin
   github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject:
     properties:
       createdAt:
@@ -135,7 +143,10 @@ definitions:
   internal_roles_infra_http.CreateRoleRequest:
     properties:
       label:
-        example: Admin
+        enum:
+        - prof
+        - admin
+        example: prof
         type: string
     type: object
   internal_roles_infra_http.CreateRoleResponse:
@@ -144,8 +155,9 @@ definitions:
         example: 1
         type: integer
       label:
-        example: Admin
-        type: string
+        allOf:
+        - $ref: '#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.RoleLabel'
+        example: prof
     type: object
   internal_roles_infra_http.ErrorResponse:
     properties:
@@ -542,7 +554,7 @@ paths:
       consumes:
       - application/json
       description: Creates a new role with the provided label. Label is normalized
-        to lowercase and trimmed.
+        to lowercase and trimmed, and must be either prof or admin.
       parameters:
       - description: Role details
         in: body

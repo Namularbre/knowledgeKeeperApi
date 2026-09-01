@@ -16,10 +16,10 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *sql.DB) *MySQLRepository { return &MySQLRepository{db: db} }
 
-func (r *MySQLRepository) Create(ctx context.Context, label string) (domain.Role, error) {
+func (r *MySQLRepository) Create(ctx context.Context, label domain.RoleLabel) (domain.Role, error) {
 	res, err := r.db.ExecContext(ctx,
 		`INSERT INTO roles (label) VALUES (?)`,
-		label,
+		string(label),
 	)
 
 	if err != nil {

@@ -4,7 +4,7 @@ import "context"
 
 // Repository persists and retrieves roles.
 type Repository interface {
-	Create(ctx context.Context, label string) (Role, error)
+	Create(ctx context.Context, label RoleLabel) (Role, error)
 	FetchByPage(ctx context.Context, page, perPage uint64) ([]Role, error)
 	FindByID(ctx context.Context, id uint64) (Role, error)
 	SearchByLabel(ctx context.Context, label string) ([]Role, error)

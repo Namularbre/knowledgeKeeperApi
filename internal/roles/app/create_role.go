@@ -20,18 +20,16 @@ func (uc CreateRole) Execute(ctx context.Context, in CreateRoleInput) (domain.Ro
 	if err != nil {
 		return domain.Role{}, err
 	}
-	if len(in.Label) == 0 {
-		return domain.Role{}, domain.ErrInvalidRoleLabel
-	}
 
 	return uc.Roles.Create(ctx, label)
 }
 
-// normalizeLabel aims to make roles labels look clean with all letters in lower and by trimming the input string
-func normalizeLabel(label string) (string, error) {
-	trimmed := strings.ToLower(strings.TrimSpace(label))
-	if trimmed == "" {
+// normalizeLabel trims and lowercases the input, then validates it against the
+// role labels supported by the domain.
+func normalizeLabel(label string) (domain.RoleLabel, error) {
+	normalized := domain.RoleLabel(strings.ToLower(strings.TrimSpace(label)))
+	if !normalized.IsValid() {
 		return "", domain.ErrInvalidRoleLabel
 	}
-	return trimmed, nil
+	return normalized, nil
 }

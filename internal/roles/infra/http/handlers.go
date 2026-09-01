@@ -38,7 +38,7 @@ type RemoveUserRoleHandler struct{ UC rolesapp.RemoveUserRole }
 type SearchByLabelHandler struct{ UC rolesapp.SearchByLabel }
 
 type CreateRoleRequest struct {
-	Label string `json:"label" example:"Admin"`
+	Label string `json:"label" example:"prof" enums:"prof,admin"`
 }
 
 type FindByIDRequest struct {
@@ -64,8 +64,8 @@ type SearchByLabelRequest struct {
 }
 
 type CreateRoleResponse struct {
-	Id    int64  `json:"id" example:"1"`
-	Label string `json:"label" example:"Admin"`
+	Id    int64                 `json:"id" example:"1"`
+	Label rolesdomain.RoleLabel `json:"label" example:"prof"`
 }
 
 type FindByIdResponse struct {
@@ -94,7 +94,7 @@ type ErrorResponse struct {
 
 // CreateRole godoc
 // @Summary      Create a new role
-// @Description  Creates a new role with the provided label. Label is normalized to lowercase and trimmed.
+// @Description  Creates a new role with the provided label. Label is normalized to lowercase and trimmed, and must be either prof or admin.
 // @Tags         roles
 // @Accept       json
 // @Produce      json

@@ -44,10 +44,10 @@ func UserIDFrom(ctx context.Context) (int64, bool) {
 // RequireAnyRole wraps a handler so it only executes when the authenticated
 // user has at least one of the allowed roles. It must be wrapped by
 // RequireBearer so the authenticated user ID is available in the context.
-func RequireAnyRole(roles rolesdomain.Repository, allowed ...string) func(http.Handler) http.Handler {
+func RequireAnyRole(roles rolesdomain.Repository, allowed ...rolesdomain.RoleLabel) func(http.Handler) http.Handler {
 	allowedSet := make(map[string]struct{}, len(allowed))
 	for _, label := range allowed {
-		allowedSet[strings.ToLower(strings.TrimSpace(label))] = struct{}{}
+		allowedSet[strings.ToLower(strings.TrimSpace(string(label)))] = struct{}{}
 	}
 
 	return func(next http.Handler) http.Handler {
@@ -65,7 +65,7 @@ func RequireAnyRole(roles rolesdomain.Repository, allowed ...string) func(http.H
 			}
 
 			for _, role := range assigned {
-				if _, ok := allowedSet[strings.ToLower(strings.TrimSpace(role.Label))]; ok {
+				if _, ok := allowedSet[strings.ToLower(strings.TrimSpace(string(role.Label)))]; ok {
 					next.ServeHTTP(w, r)
 					return
 				}

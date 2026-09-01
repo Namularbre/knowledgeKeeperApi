@@ -516,7 +516,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates a new role with the provided label. Label is normalized to lowercase and trimmed.",
+                "description": "Creates a new role with the provided label. Label is normalized to lowercase and trimmed, and must be either prof or admin.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1044,12 +1044,23 @@ const docTemplate = `{
                     "format": "int64"
                 },
                 "label": {
-                    "type": "string"
+                    "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.RoleLabel"
                 },
                 "updatedAt": {
                     "type": "string"
                 }
             }
+        },
+        "github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.RoleLabel": {
+            "type": "string",
+            "enum": [
+                "prof",
+                "admin"
+            ],
+            "x-enum-varnames": [
+                "RoleProf",
+                "RoleAdmin"
+            ]
         },
         "github_com_Namularbre_knowledgeKeeperApi_internal_subjects_domain.Subject": {
             "type": "object",
@@ -1211,7 +1222,11 @@ const docTemplate = `{
             "properties": {
                 "label": {
                     "type": "string",
-                    "example": "Admin"
+                    "enum": [
+                        "prof",
+                        "admin"
+                    ],
+                    "example": "prof"
                 }
             }
         },
@@ -1223,8 +1238,12 @@ const docTemplate = `{
                     "example": 1
                 },
                 "label": {
-                    "type": "string",
-                    "example": "Admin"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_Namularbre_knowledgeKeeperApi_internal_roles_domain.RoleLabel"
+                        }
+                    ],
+                    "example": "prof"
                 }
             }
         },
