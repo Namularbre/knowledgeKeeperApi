@@ -17,12 +17,14 @@ type Handlers struct {
 	Register RegisterHandler
 	Login    LoginHandler
 	Refresh  RefreshHandler
+	Logout   LogoutHandler
 	Me       MeHandler
 }
 
 type RegisterHandler struct{ UC authapp.RegisterUser }
 type LoginHandler struct{ UC authapp.LoginUser }
 type RefreshHandler struct{ UC authapp.RefreshSession }
+type LogoutHandler struct{ UC authapp.LogoutSession }
 type MeHandler struct{ UC authapp.Me }
 
 // CredentialsRequest is the body for register/login.
@@ -149,6 +151,34 @@ func (h RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, tokenPairToResponse(pair))
+}
+
+// Logout godoc
+// @Summary      Log out
+// @Description  Revokes the provided refresh token so it can no longer be used. Idempotent: an unknown or already revoked token also returns 204.
+// @Tags         auth
+// @Accept       json
+// @Param        body  body  RefreshRequest  true  "Refresh token to revoke"
+// @Success      204
+// @Failure      400   {object}  ErrorResponse  "invalid_request"
+// @Failure      401   {object}  ErrorResponse  "invalid_refresh_token"
+// @Failure      500   {object}  ErrorResponse
+// @Router       /auth/logout [post]
+func (h LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed")
+		return
+	}
+	var req RefreshRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request")
+		return
+	}
+	if err := h.UC.Execute(r.Context(), req.RefreshToken); err != nil {
+		writeDomainError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // Me godoc

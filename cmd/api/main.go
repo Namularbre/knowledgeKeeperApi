@@ -34,7 +34,7 @@ import (
 
 // @title           knowledgeKeeperApi
 // @version         1.0.0
-// @description     Personal knowledge keeper API. Auth (register/login/refresh), and metadata endpoints.
+// @description     Personal knowledge keeper API. Auth (register/login/refresh/logout), and metadata endpoints.
 // @BasePath        /
 //
 // @securityDefinitions.apikey BearerAuth
@@ -112,6 +112,10 @@ func main() {
 			Tokens:        issuer,
 			RefreshTTL:    cfg.JWT.RefreshTTL,
 		}},
+		Logout: authhttp.LogoutHandler{UC: app.LogoutSession{
+			RefreshTokens: refreshes,
+			Tokens:        issuer,
+		}},
 		Me: authhttp.MeHandler{UC: app.Me{
 			Users: users,
 		}},
@@ -161,6 +165,7 @@ func main() {
 		mux.Handle("/auth/register", httpserver.LogMiddleware(authHandlers.Register))
 		mux.Handle("/auth/login", httpserver.LogMiddleware(authHandlers.Login))
 		mux.Handle("/auth/refresh", httpserver.LogMiddleware(authHandlers.Refresh))
+		mux.Handle("/auth/logout", httpserver.LogMiddleware(authHandlers.Logout))
 		mux.Handle("/auth/me", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authHandlers.Me)))
 
 		mux.Handle("/roles/create", httpserver.LogMiddleware(authhttp.RequireBearer(issuer, authhttp.RequireAnyRole(roles, "admin")(rolesHandlers.CreateRole))))
