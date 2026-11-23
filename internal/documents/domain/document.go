@@ -10,7 +10,7 @@ import (
 type DocumentID int64
 type DocumentURL string
 
-type document struct {
+type Document struct {
 	ID          DocumentID
 	Name        DocumentName
 	Description string
