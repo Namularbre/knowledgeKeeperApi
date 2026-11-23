@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type DBConfig struct {
@@ -28,18 +31,29 @@ type Config struct {
 }
 
 func LoadFromEnv() (Config, error) {
+	fileEnv, err := godotenv.Read(".env")
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return Config{}, fmt.Errorf("read .env: %w", err)
+	}
+	getEnv := func(key string) string {
+		if value, exists := fileEnv[key]; exists {
+			return value
+		}
+		return os.Getenv(key)
+	}
+
 	cfg := Config{
-		Port: os.Getenv("PORT"),
+		Port: getEnv("PORT"),
 		DB: DBConfig{
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			Name:     os.Getenv("DB_NAME"),
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
+			Host:     getEnv("DB_HOST"),
+			Port:     getEnv("DB_PORT"),
+			Name:     getEnv("DB_NAME"),
+			User:     getEnv("DB_USER"),
+			Password: getEnv("DB_PASSWORD"),
 		},
 		JWT: JWTConfig{
-			Secret: os.Getenv("JWT_SECRET"),
-			Issuer: os.Getenv("JWT_ISSUER"),
+			Secret: getEnv("JWT_SECRET"),
+			Issuer: getEnv("JWT_ISSUER"),
 		},
 	}
 
@@ -58,13 +72,13 @@ func LoadFromEnv() (Config, error) {
 		cfg.JWT.Issuer = "knowledgeKeeperApi"
 	}
 
-	accessTTL, err := parseDurationOrDefault(os.Getenv("JWT_TTL"), 15*time.Minute)
+	accessTTL, err := parseDurationOrDefault(getEnv("JWT_TTL"), 15*time.Minute)
 	if err != nil {
 		return Config{}, fmt.Errorf("invalid JWT_TTL: %w", err)
 	}
 	cfg.JWT.AccessTTL = accessTTL
 
-	refreshTTL, err := parseDurationOrDefault(os.Getenv("JWT_REFRESH_TTL"), 7*24*time.Hour)
+	refreshTTL, err := parseDurationOrDefault(getEnv("JWT_REFRESH_TTL"), 7*24*time.Hour)
 	if err != nil {
 		return Config{}, fmt.Errorf("invalid JWT_REFRESH_TTL: %w", err)
 	}
