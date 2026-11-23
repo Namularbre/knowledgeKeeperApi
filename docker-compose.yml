@@ -20,6 +20,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      garage:
+        condition: service_healthy
     restart: unless-stopped
 
   db:
@@ -41,5 +43,22 @@ services:
       retries: 20
     restart: unless-stopped
 
+  garage:
+    image: dxflrs/garage:v2.5.0
+    restart: unless-stopped
+    command: /garage server --single-node --default-bucket
+
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_KEY}
+      GARAGE_DEFAULT_BUCKET: ${S3_BUCKET}
+
+    volumes:
+      - ./garage.toml:/etc/garage.toml:ro
+      - garage_metadata:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+
 volumes:
   mariadb_data:
+  garage_metadata:
+  garage_data:
