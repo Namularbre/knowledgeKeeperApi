@@ -5,6 +5,7 @@ go 1.25.3
 require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.3
 	golang.org/x/crypto v0.27.0

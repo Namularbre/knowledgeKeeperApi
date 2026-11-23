@@ -29,7 +29,7 @@ source ~/.zshrc
 
 ## Configuration
 
-The API reads everything from environment variables. A working sample lives in `.env`:
+The API looks for `.env` in the current working directory (use the project root when running from an IDE). Values in `.env` take priority; settings absent from the file fall back to OS environment variables. If the file is missing, all settings come from the OS environment. An explicitly empty value in `.env` stays empty. Invalid or unreadable files produce a configuration error.
 
 | Variable | Required | Default | Notes |
 |---|---|---|---|
@@ -82,10 +82,10 @@ docker compose down -v
 
 ```sh
 docker compose up -d db
-DB_HOST=127.0.0.1 go run ./cmd/api
+go run ./cmd/api
 ```
 
-`DB_HOST=127.0.0.1` overrides the compose-internal hostname `db`.
+For a local Go run, set `DB_HOST=127.0.0.1` in `.env`. Use `DB_HOST=db` when running the API in Docker Compose. If `.env` is absent, set the required variables in your shell or IDE instead.
 
 ### Option C — go run, no Docker
 
@@ -191,7 +191,7 @@ scripts/swag.sh          Regenerate OpenAPI spec
 | Run full stack | `docker compose up --build` |
 | Stop stack | `docker compose down` |
 | Wipe DB | `docker compose down -v` |
-| Run API only (against compose DB) | `docker compose up -d db && DB_HOST=127.0.0.1 go run ./cmd/api` |
+| Run API only (against compose DB) | Set `DB_HOST=127.0.0.1` in `.env`, then `docker compose up -d db && go run ./cmd/api` |
 | Regenerate OpenAPI | `./scripts/swag.sh` |
 | Build production binary | `go build -ldflags "-s -w -X github.com/Namularbre/knowledgeKeeperApi/internal/version.Version=$(cat VERSION)" -o bin/api ./cmd/api` |
 | Tidy dependencies | `go mod tidy` |
