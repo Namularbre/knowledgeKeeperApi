@@ -23,6 +23,5 @@ type document struct {
 var (
 	ErrDocumentNotFound      = errors.New("document not found")
 	ErrDocumentAlreadyExists = errors.New("document already exists")
-	ErrInvalidDocumentName   = errors.New("invalid document name")
 	ErrUserDocumentExists    = errors.New("user document already exists")
 )

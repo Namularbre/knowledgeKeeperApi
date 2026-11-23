@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"strings"
 	"unicode/utf8"
 )
@@ -8,6 +9,8 @@ import (
 type DocumentName struct {
 	value string
 }
+
+var ErrInvalidDocumentName = errors.New("invalid document name")
 
 func NewDocumentName(raw string) (DocumentName, error) {
 	name := strings.TrimSpace(raw)
